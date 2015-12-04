@@ -1,0 +1,14 @@
+[info]
+title=Macros for CudaText
+desc=Macros for CudaText
+type=cudatext-plugin
+subdir=cuda_macros
+
+[item1]
+section=events
+method=on_macro
+
+[item2]
+section=commands
+caption=Config macros
+method=dlg_config
