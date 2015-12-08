@@ -6,9 +6,9 @@ subdir=cuda_macros
 
 [item1]
 section=events
-events=on_macro
+events=on_start,on_macro
 
 [item2]
 section=commands
-caption=Config macros
+caption=Macros...
 method=dlg_config
