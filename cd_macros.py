@@ -120,33 +120,33 @@ class Command:
                       ,'val='+str(mcr_ind)  # start sel
                       ] # i=0
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=GAP*1+HT_BTN*1)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)#GAP*1+HT_BTN*1)
                       ,'cap=&View actions...'
                       ,'props=1'            # default
                       ] # i=1
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=GAP*2+HT_BTN*2)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)#GAP*2+HT_BTN*2)
                       ,'cap=&Hotkeys...'
                       ] # i=2
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=GAP*3+HT_BTN*3)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)#GAP*3+HT_BTN*3)
                       ,'cap=Re&name...'
                       ] # i=3
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=GAP*4+HT_BTN*4)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)#GAP*4+HT_BTN*4)
                       ,'cap=&Delete...'
                       ] # i=4
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=GAP*7+HT_BTN*7)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=0)#GAP*7+HT_BTN*7)
                       ,'cap=&Run'
                       ] # i=5
              )]
-            +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+WD_BTN2,b=GAP*8+HT_BTN*8)
+            +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+WD_BTN2,b=0)#GAP*8+HT_BTN*8)
                       ,'cap=&Times'
                       ] # i=6
              )]
-            +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+WD_BTN2+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=GAP*8+HT_BTN*8)
-                      ,'props=1,1000,1'
+            +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+WD_BTN2+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=0)#GAP*8+HT_BTN*8)
+                      ,'props=1,{},1'.format(self.dlg_prs.get('times',  1000))
                       ] # i=7
              )]
             +[c1.join(['type=memo'      ,pos_fmt(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
@@ -154,11 +154,11 @@ class Command:
                       ,'props=0,0,1'    # ro,mono,border
                       ] # i=8
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=HT_LST)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)#HT_LST)
                       ,'cap=C&ustom...'
                       ] # i=9
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=HT_LST)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)#HT_LST)
                       ,'cap=&Close'
                       ] # i=10
              )]
@@ -184,17 +184,19 @@ class Command:
             changed = False
             if False:pass
             elif ans_s=='custom': #Custom
-                custs   = app.dlg_input_ex(4, 'Custom dialog Macros'
+                custs   = app.dlg_input_ex(5, 'Custom dialog Macros'
                     , 'Height of macro list'        , str(self.dlg_prs.get('h_list', 300))
                     , 'Width of macro list'         , str(self.dlg_prs.get('w_list', 500))
                     , 'Width of action list'        , str(self.dlg_prs.get('w_acts', 500))
                     , 'Width of buttons'            , str(self.dlg_prs.get('w_btn',  150))
+                    , 'Max run times'               , str(self.dlg_prs.get('times',  1000))
                     )
                 if custs is not None:
-                    self.dlg_prs['h_list']  = int(custs[0])
-                    self.dlg_prs['w_list']  = int(custs[1])
-                    self.dlg_prs['w_acts']  = int(custs[2])
-                    self.dlg_prs['w_btn']   = int(custs[3])
+                    self.dlg_prs['h_list']  = max(300, int(custs[0]));  self.dlg_prs['h_acts'] = self.dlg_prs['h_list']
+                    self.dlg_prs['w_list']  = max(200, int(custs[1]))
+                    self.dlg_prs['w_acts']  = max(200, int(custs[2]))
+                    self.dlg_prs['w_btn']   = max(100, int(custs[3]))
+                    self.dlg_prs['times']   = max(100, int(custs[4]))
                     open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
                 continue #while
                 
