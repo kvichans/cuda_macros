@@ -43,6 +43,7 @@ class Command:
             pass
         self.macros     = ver_macros['list']
         self.mcr4id     = {str(mcr['id']):mcr for mcr in self.macros}
+        self.dlg_prs    = ver_macros.get('dlg_prs', {})
        #def __init__
        
     def on_start(self, ed_self):
@@ -88,14 +89,18 @@ class Command:
         c1      = chr(1)
         pos_fmt = 'pos={l},{t},{r},{b}'.format
         GAP     = 5
-        (WD_LST
-        ,HT_LST)= (200, 200)
-        (WD_BTN
-        ,HT_BTN)= (150, 25)
-        l_btn   = GAP+WD_LST+GAP
         
         mcr_ind = 0
         while True:
+            (WD_LST
+            ,HT_LST)= (self.dlg_prs.get('w_list', 300), self.dlg_prs.get('h_list', 500))
+            (WD_ACTS
+            ,HT_ACTS)=(self.dlg_prs.get('w_acts', 300), self.dlg_prs.get('h_acts', 500))
+            (WD_BTN
+            ,HT_BTN)= (self.dlg_prs.get('w_btn', 150), 25)
+            WD_BTN2 = int(WD_BTN/2)
+            l_btn   = GAP+WD_LST+GAP
+
             nmkys   = []
             for mcr in self.macros:
                 mcr_cid = 'cuda_macros,run,{}'.format(mcr['id'])
@@ -103,9 +108,13 @@ class Command:
                 kys     = '/'.join([' * '.join(mcr_keys.get('s1', []))
                                    ,' * '.join(mcr_keys.get('s2', []))
                                    ]).strip('/')
-                nmkys  += [mcr['nm'] + (' ('+kys+')' if kys else '')]
+                nmkys  += [mcr['nm'] + (' ['+kys+']' if kys else '')]
 
-            ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP,GAP+HT_LST+GAP, '\n'.join([]
+            mcr_acts= ''
+            if mcr_ind in range(len(self.macros)):
+                mcr     = self.macros[mcr_ind]
+                mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]]+mcr['evl'])
+            ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
             +[c1.join(['type=listbox'   ,pos_fmt(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
                       ,'items='+'\t'.join(nmkys)
                       ,'val='+str(mcr_ind)  # start sel
@@ -117,24 +126,41 @@ class Command:
                       ] # i=1
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=GAP*2+HT_BTN*2)
-                      ,'cap=Re&name...'
+                      ,'cap=&Hotkeys...'
                       ] # i=2
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=GAP*3+HT_BTN*3)
-                      ,'cap=&Delete...'
+                      ,'cap=Re&name...'
                       ] # i=3
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=GAP*4+HT_BTN*4)
-                      ,'cap=&Run'
+                      ,'cap=&Delete...'
                       ] # i=4
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*5+HT_BTN*4,    r=l_btn+WD_BTN, b=GAP*5+HT_BTN*5)
-                      ,'cap=&Hotkeys...'
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=GAP*7+HT_BTN*7)
+                      ,'cap=&Run'
                       ] # i=5
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN, r=l_btn+WD_BTN, b=HT_LST)
-                      ,'cap=&Close'
+            +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+WD_BTN2,b=GAP*8+HT_BTN*8)
+                      ,'cap=&Times'
                       ] # i=6
+             )]
+            +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+WD_BTN2+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=GAP*8+HT_BTN*8)
+                      ,'props=1,1000,1'
+                      ] # i=7
+             )]
+            +[c1.join(['type=memo'      ,pos_fmt(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
+                      ,'val='+mcr_acts
+                      ,'props=0,0,1'    # ro,mono,border
+                      ] # i=8
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=HT_LST)
+                      ,'cap=C&ustom...'
+                      ] # i=9
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=HT_LST)
+                      ,'cap=&Close'
+                      ] # i=10
              )]
             ), 0)    # start focus
             pass;                   LOG and log('ans={}',ans)
@@ -142,37 +168,54 @@ class Command:
             (ans_i
             ,vals)  = ans
             ans_s   = apx.icase(ans_i==1, 'view'
-                               ,ans_i==2, 'rename'
-                               ,ans_i==3, 'delete'
-                               ,ans_i==4, 'run'
-                               ,ans_i==5, 'hotkeys'
-                               ,ans_i==6, 'close'
+                               ,ans_i==2, 'hotkeys'
+                               ,ans_i==3, 'rename'
+                               ,ans_i==4, 'delete'
+                               ,ans_i==5, 'run'
+                               ,ans_i==9, 'custom'
+                               ,ans_i==10,'close'
                                ,'?')
             if ans_s=='close':  break #while
-            
             mcr_ind = int(vals.splitlines()[0])
-            mcr     = self.macros[mcr_ind]
+            times   = int(vals.splitlines()[7])
 
+            mcr     = self.macros[mcr_ind]
             what    = ''
             changed = False
             if False:pass
+            elif ans_s=='custom': #Custom
+                custs   = app.dlg_input_ex(4, 'Custom dialog Macros'
+                    , 'Height of macro list'        , str(self.dlg_prs.get('h_list', 300))
+                    , 'Width of macro list'         , str(self.dlg_prs.get('w_list', 500))
+                    , 'Width of action list'        , str(self.dlg_prs.get('w_acts', 500))
+                    , 'Width of buttons'            , str(self.dlg_prs.get('w_btn',  150))
+                    )
+                if custs is not None:
+                    self.dlg_prs['h_list']  = int(custs[0])
+                    self.dlg_prs['w_list']  = int(custs[1])
+                    self.dlg_prs['w_acts']  = int(custs[2])
+                    self.dlg_prs['w_btn']   = int(custs[3])
+                    open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
+                continue #while
+                
             elif ans_s=='view': #View
-                app.dlg_custom('Macro actions',    GAP+400+GAP,  GAP+30+300+GAP+30+GAP, '\n'.join([]
-                +[c1.join(['type=label' ,pos_fmt(l=GAP,        t=GAP,          r=GAP+400, b=GAP+30)
-                          ,'cap=Macro: '+nmkys[mcr_ind]
-                          ] # i=0
-                 )]
-                +[c1.join(['type=memo'  ,pos_fmt(l=GAP,        t=GAP+30,       r=GAP+400, b=GAP+300+30)
-                          ,'val='+'\t'.join(mcr['evl'])
-                          ,'props=1,1,0'    # ro,mono,border
-                          ] # i=1
-                 )]
-                +[c1.join(['type=button',pos_fmt(l=GAP,        t=GAP+30+300+GAP,r=GAP+400, b=GAP+30+300+GAP+30)
-                          ,'cap=&Close'
-                          ,'props=1'        # default
-                          ] # i=2
-                 )]
-                ), 2)       # start focus
+                continue #while
+#               app.dlg_custom('Macro actions',    GAP+400+GAP,  GAP+30+300+GAP+30+GAP, '\n'.join([]
+#               +[c1.join(['type=label' ,pos_fmt(l=GAP,        t=GAP,          r=GAP+400, b=GAP+30)
+#                         ,'cap='+nmkys[mcr_ind]
+#                         ] # i=0
+#                )]
+#               +[c1.join(['type=memo'  ,pos_fmt(l=GAP,        t=GAP+30,       r=GAP+400, b=GAP+300+30)
+#                         ,'val='+'\t'.join(mcr['evl'])
+#                         ,'props=1,1,0'    # ro,mono,border
+#                         ] # i=1
+#                )]
+#               +[c1.join(['type=button',pos_fmt(l=GAP,        t=GAP+30+300+GAP,r=GAP+400, b=GAP+30+300+GAP+30)
+#                         ,'cap=&Close'
+#                         ,'props=1'        # default
+#                         ] # i=2
+#                )]
+#               ), 2)       # start focus
 
             elif ans_s=='rename': #Rename
                 mcr_nm      = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
@@ -196,7 +239,9 @@ class Command:
                 changed = True
                 
             elif ans_s=='run': #Run
-                self.run(mcr['id'])
+                times = max(1, times)
+                for rp in range(times):
+                    self.run(mcr['id'])
                 return
                 
             elif ans_s=='hotkeys': #Hotkeys
@@ -207,11 +252,6 @@ class Command:
             if changed:
                 self._do_acts(what)
            #while True
-       #=dlg_custom('aaa',400,300,'type=check'+chr(1)+'cap=Chk'+chr(1)+'pos=30,30,200,50'+chr(1)+'val=1'   
-      #                     +'\n'+'type=memo'+chr(1)+'pos=60,60,300,200'+chr(1)+'items='+'\t'.join([str(i) for i in range(50)])+chr(1)+'val=1'  
-      #                     +'\n'+'type=edit'+chr(1)+'pos=200,20,350,50'+chr(1)+'val=Edit1'   
-      #                     +'\n'+'type=button'+chr(1)+'cap=Btn1'+chr(1)+'pos=10,200,100,220'   
-      #                     +'\n'+'type=button'+chr(1)+'cap=Btn2'+chr(1)+'pos=100,200,190,220',5)
        #def dlg_config_custom
         
     def dlg_config(self):
@@ -362,7 +402,7 @@ class Command:
         pass;                  #LOG and log('what, acts={}',(what, acts))
         # Save
         if '|save|' in acts:
-            open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros}, indent=4))
+            open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
         
         # Secondary data
         if '|second|' in acts:
