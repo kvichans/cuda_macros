@@ -1,6 +1,6 @@
 ''' Plugin for CudaText editor
 Authors:
-    Andrey Kvichansky    (kvichans on githab.com)
+    Andrey Kvichansky    (kvichans on github.com)
 Version:
     '0.9.2 2015-12-15'
 ToDo: (see end of file)
@@ -80,9 +80,145 @@ class Command:
             app.app_proc(app.PROC_MENU_ADD, '{};cuda_macros,run,{};{}'.format(id_menu, mcr['id'], mcr['nm']))
        #def _adapt_menu
         
+    def dlg_config_custom(self):
+        ''' Show dlg for change macros list.
+        '''
+        keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
+        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        c1      = chr(1)
+        pos_fmt = 'pos={l},{t},{r},{b}'.format
+        GAP     = 5
+        (WD_LST
+        ,HT_LST)= (200, 200)
+        (WD_BTN
+        ,HT_BTN)= (150, 25)
+        l_btn   = GAP+WD_LST+GAP
+        
+        mcr_ind = 0
+        while True:
+            nmkys   = []
+            for mcr in self.macros:
+                mcr_cid = 'cuda_macros,run,{}'.format(mcr['id'])
+                mcr_keys= keys.get(mcr_cid, {})
+                kys     = '/'.join([' * '.join(mcr_keys.get('s1', []))
+                                   ,' * '.join(mcr_keys.get('s2', []))
+                                   ]).strip('/')
+                nmkys  += [mcr['nm'] + (' ('+kys+')' if kys else '')]
+
+            ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP,GAP+HT_LST+GAP, '\n'.join([]
+            +[c1.join(['type=listbox'   ,pos_fmt(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
+                      ,'items='+'\t'.join(nmkys)
+                      ,'val='+str(mcr_ind)  # start sel
+                      ] # i=0
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=GAP*1+HT_BTN*1)
+                      ,'cap=&View actions...'
+                      ,'props=1'            # default
+                      ] # i=1
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=GAP*2+HT_BTN*2)
+                      ,'cap=Re&name...'
+                      ] # i=2
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=GAP*3+HT_BTN*3)
+                      ,'cap=&Delete...'
+                      ] # i=3
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=GAP*4+HT_BTN*4)
+                      ,'cap=&Run'
+                      ] # i=4
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*5+HT_BTN*4,    r=l_btn+WD_BTN, b=GAP*5+HT_BTN*5)
+                      ,'cap=&Hotkeys...'
+                      ] # i=5
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN, r=l_btn+WD_BTN, b=HT_LST)
+                      ,'cap=&Close'
+                      ] # i=6
+             )]
+            ), 0)    # start focus
+            pass;                   LOG and log('ans={}',ans)
+            if ans is None:  break #while
+            (ans_i
+            ,vals)  = ans
+            ans_s   = apx.icase(ans_i==1, 'view'
+                               ,ans_i==2, 'rename'
+                               ,ans_i==3, 'delete'
+                               ,ans_i==4, 'run'
+                               ,ans_i==5, 'hotkeys'
+                               ,ans_i==6, 'close'
+                               ,'?')
+            if ans_s=='close':  break #while
+            
+            mcr_ind = int(vals.splitlines()[0])
+            mcr     = self.macros[mcr_ind]
+
+            what    = ''
+            changed = False
+            if False:pass
+            elif ans_s=='view': #View
+                app.dlg_custom('Macro actions',    GAP+400+GAP,  GAP+30+300+GAP+30+GAP, '\n'.join([]
+                +[c1.join(['type=label' ,pos_fmt(l=GAP,        t=GAP,          r=GAP+400, b=GAP+30)
+                          ,'cap=Macro: '+nmkys[mcr_ind]
+                          ] # i=0
+                 )]
+                +[c1.join(['type=memo'  ,pos_fmt(l=GAP,        t=GAP+30,       r=GAP+400, b=GAP+300+30)
+                          ,'val='+'\t'.join(mcr['evl'])
+                          ,'props=1,1,0'    # ro,mono,border
+                          ] # i=1
+                 )]
+                +[c1.join(['type=button',pos_fmt(l=GAP,        t=GAP+30+300+GAP,r=GAP+400, b=GAP+30+300+GAP+30)
+                          ,'cap=&Close'
+                          ,'props=1'        # default
+                          ] # i=2
+                 )]
+                ), 2)       # start focus
+
+            elif ans_s=='rename': #Rename
+                mcr_nm      = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
+                                           ,mcr['nm'])
+                if mcr_nm is None or mcr_nm==mcr['nm']:     continue #while
+                while mcr_nm in [mcr['nm'] for mcr in self.macros]:
+                    app.msg_box('Select other name.\nMacro names now are:\n\n'+'\n'.join(nmkys), app.MB_OK)
+                    mcr_nm  = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
+                                           ,mcr_nm)
+                    if mcr_nm is None or mcr_nm==mcr['nm']: break #while mcr_nm
+                if mcr_nm is None or mcr_nm==mcr['nm']:     continue #while
+                what        = 'rename'
+                mcr['nm']   = mcr_nm
+                changed = True
+                
+            elif ans_s=='delete': #Del
+                if app.msg_box( 'Delete macro\n    {}'.format(nmkys[mcr_ind])
+                              , app.MB_YESNO)!=app.ID_YES:  continue #while
+                what    = 'delete:'+str(mcr['id'])
+                del self.macros[mcr_ind]
+                changed = True
+                
+            elif ans_s=='run': #Run
+                self.run(mcr['id'])
+                return
+                
+            elif ans_s=='hotkeys': #Hotkeys
+                app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
+                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                changed = True
+
+            if changed:
+                self._do_acts(what)
+           #while True
+       #=dlg_custom('aaa',400,300,'type=check'+chr(1)+'cap=Chk'+chr(1)+'pos=30,30,200,50'+chr(1)+'val=1'   
+      #                     +'\n'+'type=memo'+chr(1)+'pos=60,60,300,200'+chr(1)+'items='+'\t'.join([str(i) for i in range(50)])+chr(1)+'val=1'  
+      #                     +'\n'+'type=edit'+chr(1)+'pos=200,20,350,50'+chr(1)+'val=Edit1'   
+      #                     +'\n'+'type=button'+chr(1)+'cap=Btn1'+chr(1)+'pos=10,200,100,220'   
+      #                     +'\n'+'type=button'+chr(1)+'cap=Btn2'+chr(1)+'pos=100,200,190,220',5)
+       #def dlg_config_custom
+        
     def dlg_config(self):
         ''' Show dlg for change macros list.
         '''
+        return self.dlg_config_custom()
+        
 #       macros  = self.macros
         acts= []
         if False:pass
