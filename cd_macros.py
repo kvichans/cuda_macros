@@ -73,17 +73,16 @@ class Command:
             ed.macros_id_menu = id_menu                 ##?? dirty hack!
 
         # Fill
-        if 0==len(self.macros):
-            if not ed.get_prop(app.PROP_MACRO_REC):
-                app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart, 'Start record'))
-            else:
-                app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,  'Stop record'))
-                app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,'Cancel record'))
-            return
-        app.app_proc(app.PROC_MENU_ADD, '{};cuda_macros,dlg_config;{}'.format(id_menu, 'Co&nfig...'))
+        app.app_proc(app.PROC_MENU_ADD, '{};cuda_macros,dlg_config;{}'.format(id_menu, '&Macros...'))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart, '&Start record'))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,  'St&op record'))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,'&Cancel record'))
+        if 0==len(self.macros): return
+        app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(id_menu))
+        id_sub  = app.app_proc( app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, '&Run'))
         for mcr in self.macros:
-            app.app_proc(app.PROC_MENU_ADD, '{};cuda_macros,run,{};{}'.format(id_menu, mcr['id'], mcr['nm']))
+            app.app_proc(app.PROC_MENU_ADD, '{};cuda_macros,run,{};{}'.format(id_sub, mcr['id'], mcr['nm']))
        #def _adapt_menu
         
     def dlg_config_custom(self):
