@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '0.9.2 2015-12-15'
+    '0.9.5 2015-12-17'
 ToDo: (see end of file)
 '''
 
@@ -41,9 +41,12 @@ class Command:
         if ver_macros['ver'] < JSON_FORMAT_VER:
             # Adapt to new format
             pass
+        self.dlg_prs    = ver_macros.get('dlg_prs', {})
         self.macros     = ver_macros['list']
         self.mcr4id     = {str(mcr['id']):mcr for mcr in self.macros}
-        self.dlg_prs    = ver_macros.get('dlg_prs', {})
+        
+        self.need_dlg   = False
+        self.last_mcr_id= 0
        #def __init__
        
     def on_start(self, ed_self):
@@ -87,19 +90,27 @@ class Command:
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         c1      = chr(1)
+        c2      = chr(2)
         pos_fmt = 'pos={l},{t},{r},{b}'.format
         GAP     = 5
         
-        mcr_ind = 0
+        ids     = [mcr['id'] for mcr in self.macros]
+        mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
+        pass;                   LOG and log('self.last_mcr_id, mcr_ind={}',(self.last_mcr_id,mcr_ind))
         while True:
+            pass;               LOG and log('mcr_ind={}',(mcr_ind))
             (WD_LST
-            ,HT_LST)= (self.dlg_prs.get('w_list', 300), self.dlg_prs.get('h_list', 500))
+            ,HT_LST)= (self.dlg_prs.get('w_list', 300)
+                      ,self.dlg_prs.get('h_list', 500))
             (WD_ACTS
-            ,HT_ACTS)=(self.dlg_prs.get('w_acts', 300), self.dlg_prs.get('h_acts', 500))
+            ,HT_ACTS)=(self.dlg_prs.get('w_acts', 300)
+                      ,self.dlg_prs.get('h_acts', 500))
             (WD_BTN
             ,HT_BTN)= (self.dlg_prs.get('w_btn', 150), 25)
-            WD_BTN2 = int(WD_BTN/2)
             l_btn   = GAP+WD_LST+GAP
+            
+            vw_acts = (WD_ACTS!=0)
+            rec_on  = ed.get_prop(app.PROP_MACRO_REC)
 
             nmkys   = []
             for mcr in self.macros:
@@ -111,90 +122,124 @@ class Command:
                 nmkys  += [mcr['nm'] + (' ['+kys+']' if kys else '')]
 
             mcr_acts= ''
-            if mcr_ind in range(len(self.macros)):
+            if vw_acts and mcr_ind in range(len(self.macros)):
                 mcr     = self.macros[mcr_ind]
-                mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]]+mcr['evl'])
+                mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
             ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
             +[c1.join(['type=listbox'   ,pos_fmt(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
                       ,'items='+'\t'.join(nmkys)
                       ,'val='+str(mcr_ind)  # start sel
+                      ,'en='+str(0 if rec_on else 1)
                       ] # i=0
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)#GAP*1+HT_BTN*1)
+            +([c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&View actions...'
-                      ,'props=1'            # default
+                      ,'props='+str(1 if vw_acts and not rec_on else 0)     # default
+                      ,'en='+str(0 if rec_on else 1)
                       ] # i=1
+             )] if vw_acts else [])
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)
+                      ,'cap=Hot&keys...'
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=2 if vw_acts else i=1
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)#GAP*2+HT_BTN*2)
-                      ,'cap=&Hotkeys...'
-                      ] # i=2
-             )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)#GAP*3+HT_BTN*3)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)
                       ,'cap=Re&name...'
-                      ] # i=3
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=3 if vw_acts else i=2
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)#GAP*4+HT_BTN*4)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&Delete...'
-                      ] # i=4
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=4 if vw_acts else i=3
              )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=0)#GAP*7+HT_BTN*7)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&Run'
-                      ] # i=5
+                      ,'props='+str(1 if not vw_acts and not rec_on else 0)     # default
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=5 if vw_acts else i=4
              )]
-            +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+WD_BTN2,b=0)#GAP*8+HT_BTN*8)
+            +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+int(WD_BTN/3),b=0)
                       ,'cap=&Times'
-                      ] # i=6
+                      ] # i=6 if vw_acts else i=5
              )]
-            +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+WD_BTN2+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=0)#GAP*8+HT_BTN*8)
+            +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+int(WD_BTN/3)+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=0)
                       ,'props=1,{},1'.format(self.dlg_prs.get('times',  1000))
-                      ] # i=7
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=7 if vw_acts else i=6
              )]
-            +[c1.join(['type=memo'      ,pos_fmt(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*10+HT_BTN*9,    r=l_btn+WD_BTN, b=0)
+                      ,'cap='+('&Start record' if not rec_on else '&Stop record')
+                      ,'props='+str(1 if rec_on else 0)     # default
+                      ] # i=8 if vw_acts else i=7
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*11+HT_BTN*10,    r=l_btn+WD_BTN, b=0)
+                      ,'cap=Canc&el record'
+                      ,'en='+str(1 if rec_on else 0)
+                      ] # i=9 if vw_acts else i=8
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)
+                      ,'cap=C&ustom...'
+                      ,'en='+str(0 if rec_on else 1)
+                      ] # i=10 if vw_acts else i=9
+             )]
+            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)
+                      ,'cap=&Close'
+                      ] # i=11 if vw_acts else i=10
+             )]
+            +([c1.join(['type=memo'      ,pos_fmt(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
                       ,'val='+mcr_acts
                       ,'props=0,0,1'    # ro,mono,border
-                      ] # i=8
-             )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)#HT_LST)
-                      ,'cap=C&ustom...'
-                      ] # i=9
-             )]
-            +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)#HT_LST)
-                      ,'cap=&Close'
-                      ] # i=10
-             )]
-            ), 0)    # start focus
-            pass;                   LOG and log('ans={}',ans)
+                      ] # i=12
+             )] if vw_acts else [])
+            ), apx.icase(                not rec_on, 0
+                        ,    vw_acts and     rec_on, 8
+                        ,not vw_acts and not rec_on, 7))    # start focus
+            pass;              #LOG and log('ans={}',ans)
             if ans is None:  break #while
             (ans_i
             ,vals)  = ans
-            ans_s   = apx.icase(ans_i==1, 'view'
-                               ,ans_i==2, 'hotkeys'
-                               ,ans_i==3, 'rename'
-                               ,ans_i==4, 'delete'
-                               ,ans_i==5, 'run'
-                               ,ans_i==9, 'custom'
-                               ,ans_i==10,'close'
+            ans_s   = apx.icase(    vw_acts and ans_i==1, 'view'
+                               ,    vw_acts and ans_i==2, 'hotkeys'
+                               ,    vw_acts and ans_i==3, 'rename'
+                               ,    vw_acts and ans_i==4, 'delete'
+                               ,    vw_acts and ans_i==5, 'run'
+                               ,    vw_acts and ans_i==8, 'rec'
+                               ,    vw_acts and ans_i==9, 'cancel'
+                               ,    vw_acts and ans_i==10,'custom'
+                               ,    vw_acts and ans_i==11,'close'
+                              #,not vw_acts and ans_i==1, 'view'
+                               ,not vw_acts and ans_i==1, 'hotkeys'
+                               ,not vw_acts and ans_i==2, 'rename'
+                               ,not vw_acts and ans_i==3, 'delete'
+                               ,not vw_acts and ans_i==4, 'run'
+                               ,not vw_acts and ans_i==7, 'rec'
+                               ,not vw_acts and ans_i==8, 'custom'
+                               ,not vw_acts and ans_i==9, 'close'
                                ,'?')
-            if ans_s=='close':  break #while
             mcr_ind = int(vals.splitlines()[0])
-            times   = int(vals.splitlines()[7])
+            times   = int(vals.splitlines()[7 if vw_acts else 6])
 
             mcr     = self.macros[mcr_ind]
+            self.last_mcr_id = mcr['id']
+            
+            if ans_s=='close':  break #while
+            
             what    = ''
             changed = False
             if False:pass
             elif ans_s=='custom': #Custom
                 custs   = app.dlg_input_ex(5, 'Custom dialog Macros'
-                    , 'Height of macro list'        , str(self.dlg_prs.get('h_list', 300))
-                    , 'Width of macro list'         , str(self.dlg_prs.get('w_list', 500))
-                    , 'Width of action list'        , str(self.dlg_prs.get('w_acts', 500))
-                    , 'Width of buttons'            , str(self.dlg_prs.get('w_btn',  150))
-                    , 'Max run times'               , str(self.dlg_prs.get('times',  1000))
+                    , 'Height of macro list (min 300)'        , str(self.dlg_prs.get('h_list', 300))
+                    , 'Width of macro list (min 200)'         , str(self.dlg_prs.get('w_list', 500))
+                    , 'Width of action list (min 200, 0-hide)', str(self.dlg_prs.get('w_acts', 500))
+                    , 'Width of buttons (min 100)'            , str(self.dlg_prs.get('w_btn',  150))
+                    , 'Max run times (min 100)'               , str(self.dlg_prs.get('times',  1000))
                     )
                 if custs is not None:
                     self.dlg_prs['h_list']  = max(300, int(custs[0]));  self.dlg_prs['h_acts'] = self.dlg_prs['h_list']
                     self.dlg_prs['w_list']  = max(200, int(custs[1]))
-                    self.dlg_prs['w_acts']  = max(200, int(custs[2]))
+                    self.dlg_prs['w_acts']  = max(200, int(custs[2])) if int(custs[2])!=0 else 0
                     self.dlg_prs['w_btn']   = max(100, int(custs[3]))
                     self.dlg_prs['times']   = max(100, int(custs[4]))
                     open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
@@ -202,22 +247,6 @@ class Command:
                 
             elif ans_s=='view': #View
                 continue #while
-#               app.dlg_custom('Macro actions',    GAP+400+GAP,  GAP+30+300+GAP+30+GAP, '\n'.join([]
-#               +[c1.join(['type=label' ,pos_fmt(l=GAP,        t=GAP,          r=GAP+400, b=GAP+30)
-#                         ,'cap='+nmkys[mcr_ind]
-#                         ] # i=0
-#                )]
-#               +[c1.join(['type=memo'  ,pos_fmt(l=GAP,        t=GAP+30,       r=GAP+400, b=GAP+300+30)
-#                         ,'val='+'\t'.join(mcr['evl'])
-#                         ,'props=1,1,0'    # ro,mono,border
-#                         ] # i=1
-#                )]
-#               +[c1.join(['type=button',pos_fmt(l=GAP,        t=GAP+30+300+GAP,r=GAP+400, b=GAP+30+300+GAP+30)
-#                         ,'cap=&Close'
-#                         ,'props=1'        # default
-#                         ] # i=2
-#                )]
-#               ), 2)       # start focus
 
             elif ans_s=='rename': #Rename
                 mcr_nm      = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
@@ -238,19 +267,28 @@ class Command:
                               , app.MB_YESNO)!=app.ID_YES:  continue #while
                 what    = 'delete:'+str(mcr['id'])
                 del self.macros[mcr_ind]
+                mcr_ind = min(mcr_ind, len(self.macros)-1)
                 changed = True
-                
-            elif ans_s=='run': #Run
-                times = max(1, times)
-                for rp in range(times):
-                    self.run(mcr['id'])
-                return
                 
             elif ans_s=='hotkeys': #Hotkeys
                 app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
                 changed = True
 
+            elif ans_s=='run': #Run
+                times = max(1, times)
+                for rp in range(times):
+                    self.run(mcr['id'])
+                return
+
+            elif ans_s=='rec'    and not rec_on: #Start record
+                return ed.cmd(cmds.cmd_MacroStart)
+            elif ans_s=='rec'    and     rec_on: #Stop record
+                self.need_dlg = True
+                return ed.cmd(cmds.cmd_MacroStop)
+            elif ans_s=='cancel' and     rec_on: #Cancel record
+                ed.cmd(cmds.cmd_MacroCancel)
+                
             if changed:
                 self._do_acts(what)
            #while True
@@ -260,106 +298,6 @@ class Command:
         ''' Show dlg for change macros list.
         '''
         return self.dlg_config_custom()
-        
-#       macros  = self.macros
-        acts= []
-        if False:pass
-        elif ed.get_prop(app.PROP_MACRO_REC):
-            acts= ['Stop record'
-                  ,'Cancel record']
-        elif 0==len(self.macros) and not ed.get_prop(app.PROP_MACRO_REC):
-            acts= ['Start record']
-        else:
-            acts= ['Hotkeys for macro...'
-                  ,'View macro actions...'
-                  ,'Rename macro...'
-                  ,'Run macro...'
-                  ,'Delete macro...'
-                  ,'-----'
-                  ,'Start record'
-                  ]
-        while True:
-            act_ind = app.dlg_menu(app.MENU_LIST, '\n'.join(acts))
-            if act_ind is None or acts[act_ind][0]=='-': return
-            act     = acts[act_ind]
-            act     = act[:(act+' ').index(' ')]    # first word
-
-            if act in 'Start Stop Cancel':
-                if False:pass
-                elif act=='Start'                       and not ed.get_prop(app.PROP_MACRO_REC): 
-                    return ed.cmd(cmds.cmd_MacroStart)
-                elif act=='Stop'                        and     ed.get_prop(app.PROP_MACRO_REC):
-                    return ed.cmd(cmds.cmd_MacroStop)
-                elif act=='Cancel'                      and     ed.get_prop(app.PROP_MACRO_REC):
-                    return ed.cmd(cmds.cmd_MacroCancel)
-                return
-            
-        
-            keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-            keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-            nms         = [mcr['nm'] for mcr in self.macros]
-            kys         = []
-            for mcr in self.macros:
-                mcr_key = 'cuda_macros,run,{}'.format(mcr['id'])
-                mcr_keys= keys.get(mcr_key, {})
-                kys    += ['/'.join([' * '.join(mcr_keys.get('s1', []))
-                                    ,' * '.join(mcr_keys.get('s2', []))
-                                    ]).strip('/')
-                          ]
-            mcr     = ''
-            if 1==len(nms):
-                mcr_ind = 0
-            else:
-                mcr_ind = app.dlg_menu(app.MENU_LIST
-                        , '\n'.join('{}: {}\t{}'.format(a,n,k) for (a,n,k) in list(zip([act]*len(nms), nms, kys)))
-                        )
-                if mcr_ind is None: continue # while
-            mcr     = self.macros[mcr_ind]
-            mcr_keys= '('+kys[mcr_ind]+')' if ''!=kys[mcr_ind] else ''
-
-            what    = ''        
-            if False:pass
-            elif act=='Rename': 
-                #Rename
-                mcr_nm      = app.dlg_input('New name for: {} {}'.format(
-                                                mcr['nm']
-                                              , mcr_keys)
-                                           ,mcr['nm'])
-                if mcr_nm is None or mcr_nm==mcr['nm']:     continue # while
-                while mcr_nm in nms:
-                    app.msg_box('Select other name.\nMacro names now are:\n\n'+'\n'.join(nms), app.MB_OK)
-                    mcr_nm  = app.dlg_input('New name for: {} {}'.format(
-                                                mcr['nm']
-                                              , mcr_keys)
-                                           ,mcr_nm)
-                    if mcr_nm is None or mcr_nm==mcr['nm']: break # while mcr_nm
-                if mcr_nm is None or mcr_nm==mcr['nm']:     continue # while
-                what        = 'rename'
-                mcr['nm']   = mcr_nm
-            elif act=='Delete': 
-                #Delete
-                if app.msg_box( 'Delete macro\n    {} {}'.format(
-                                nms[mcr_ind]
-                              , mcr_keys)
-                              , app.MB_YESNO)!=app.ID_YES:  continue # while
-                what    = 'delete:'+str(mcr['id'])
-                del self.macros[mcr_ind]
-            elif act=='View': 
-                #View
-                app.msg_box(    'Actions for macro\n    {} {}\n\n{}'.format(
-                                nms[mcr_ind].expandtabs(8)
-                              , mcr_keys
-                              , '\n'.join(mcr['evl']))
-                              , app.MB_OK)
-#               return
-            elif act=='Hotkeys':
-                app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
-            elif act=='Run': 
-                return self.run(mcr['id'])
-
-            self._do_acts(what)
-            break #while
-           #while
        #def dlg_config
        
     def on_macro(self, ed_self, mcr_record):
@@ -370,33 +308,52 @@ class Command:
                                 number,string
                                 py:string_module,string_method,string_param
         '''
-        pass;                   LOG and log('mcr_record={}',mcr_record)
-        if ''==mcr_record:   return
+        pass;                  #LOG and log('mcr_record={}',mcr_record)
+        if ''==mcr_record:   return app.msg_status('Empty record')
         def_nm      = ''
         nms     = [mcr['nm'] for mcr in self.macros]
         for num in range(1,1000):
             def_nm  = 'Macro{}'.format(num)
             if def_nm not in nms:
                 break #for num
-        mcr_nm      = app.dlg_input('Name for new macro', def_nm)
+        mcr_nm      = app.dlg_input('Macro name (tricks: "!NM" for rewrite, "=NM" for dialog)', def_nm)
         if mcr_nm is None:   return
-        while mcr_nm in nms:
-            app.msg_box('Select other name.\nMacros names now:\n\n'+'\n'.join(nms), app.MB_OK)
-            mcr_nm  = app.dlg_input('Name for new macro', mcr_nm)
-            if mcr_nm is None:   return
+        mcr_nm      = mcr_nm.strip()
+        if mcr_nm[0]=='=':
+            self.need_dlg = True
+            mcr_nm  = mcr_nm[1:]
+        use_old     = False
+        if mcr_nm[0]=='!':
+            use_old = True
+            mcr_nm  = mcr_nm[1:]
+        if ''==mcr_nm.strip():   return app.msg_status('Empty macro name')
+        pass;                   LOG and log('self.need_dlg, use_old, mcr_nm={}',(self.need_dlg, use_old, mcr_nm))
         
-        # Parse
-        mcr_cmds    = self._record_data_to_cmds(mcr_record)
+        if use_old and mcr_nm in nms:
+            mcr_ind     = nms.index(mcr_nm)
+            self.macros[mcr_ind]['rec'] = mcr_record
+            self.macros[mcr_ind]['evl'] = self._record_data_to_cmds(mcr_record)
+            id4mcr      = self.macros[mcr_ind]['id']
+        else:
+            while mcr_nm in nms:
+                app.msg_box('Select other name.\nMacros names now:\n\n'+'\n'.join(nms), app.MB_OK)
+                mcr_nm  = app.dlg_input('Name for new macro', mcr_nm)
+                if mcr_nm is None:   return
         
-        id4mcr      = random.randint(10000, 99999)
-        while id4mcr in self.mcr4id:
-            id4mcr  = random.randint(10000, 99999)
-        self.macros += [{'id' :id4mcr       ##?? conflicts?
-                        ,'nm' :mcr_nm
-                        ,'rec':mcr_record
-                        ,'evl':mcr_cmds
-                        }]
-        self._do_acts('add')
+            id4mcr      = random.randint(10000, 99999)
+            while id4mcr in self.mcr4id:
+                id4mcr  = random.randint(10000, 99999)
+            self.macros += [{'id' :id4mcr       ##?? conflicts?
+                            ,'nm' :mcr_nm
+                            ,'rec':mcr_record
+                            ,'evl':self._record_data_to_cmds(mcr_record)
+                            }]
+        self._do_acts()
+        
+        if self.need_dlg:
+            self.need_dlg   = False
+            self.last_mcr_id= id4mcr
+            self.dlg_config_custom()
        #def on_macro
 
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
@@ -430,7 +387,7 @@ class Command:
             keys        = apx._json_loads(open(keys_json).read())
             pass;              #LOG and log('??? key={}',mcr_key)
             if keys.pop(mcr_key, None) is not None:
-                pass;           LOG and log('UPD keys.json deleted key={}',mcr_key)
+                pass;          #LOG and log('UPD keys.json deleted key={}',mcr_key)
                 open(keys_json, 'w').write(json.dumps(keys, indent=2))
         
         # [Re]Build menu
@@ -441,14 +398,15 @@ class Command:
     def run(self, mcr_id):
         ''' Main (and single) way to run any macro
         '''
-        mcr_id  = str(mcr_id)
+#       mcr_id  = str(mcr_id)
         pass;                  #LOG and log('mcr_id={}',mcr_id)
         mcr     = self.mcr4id.get(str(mcr_id))
         if mcr is None:
             return app.msg_status('No macros: {}'.format(mcr_id))
         cmds4eval   = ';'.join(mcr['evl'])
-        pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
+        pass;                  #LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         exec(cmds4eval)
+        self.last_mcr_id = mcr_id
        #def run
        
     def _record_data_to_cmds(self, rec_data):
