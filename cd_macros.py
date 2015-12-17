@@ -25,7 +25,7 @@ class Command:
     macros      = []    # Main list [macro]
     mcr4id      = {}    # Derived dict {id:macro}
     
-    id_menu     = 0
+#   id_menu     = 0
     
     def __init__(self):
         cmd_nms         = [nm                               for nm in dir(cmds) 
@@ -47,6 +47,8 @@ class Command:
         
         self.need_dlg   = False
         self.last_mcr_id= 0
+        
+        pass;                   LOG and log('\n\n\nMacros start',)
        #def __init__
        
     def on_start(self, ed_self):
@@ -98,7 +100,6 @@ class Command:
         mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
         pass;                   LOG and log('self.last_mcr_id, mcr_ind={}',(self.last_mcr_id,mcr_ind))
         while True:
-            pass;               LOG and log('mcr_ind={}',(mcr_ind))
             (WD_LST
             ,HT_LST)= (self.dlg_prs.get('w_list', 300)
                       ,self.dlg_prs.get('h_list', 500))
@@ -111,6 +112,8 @@ class Command:
             
             vw_acts = (WD_ACTS!=0)
             rec_on  = ed.get_prop(app.PROP_MACRO_REC)
+            lmcrs   = len(self.macros)
+            pass;               LOG and log('mcr_ind,vw_acts,rec_on={}',(mcr_ind,vw_acts,rec_on))
 
             nmkys   = []
             for mcr in self.macros:
@@ -122,41 +125,42 @@ class Command:
                 nmkys  += [mcr['nm'] + (' ['+kys+']' if kys else '')]
 
             mcr_acts= ''
-            if vw_acts and mcr_ind in range(len(self.macros)):
+            if vw_acts and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
                 mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
+#           dlg_text    = 
             ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
             +[c1.join(['type=listbox'   ,pos_fmt(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
-                      ,'items='+'\t'.join(nmkys)
-                      ,'val='+str(mcr_ind)  # start sel
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'items=' +'\t'.join(nmkys)
+                      ,'val='   +str(mcr_ind)  # start sel
+                      ,'en='    +str(0 if rec_on else 1)        # enabled
                       ] # i=0
              )]
             +([c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&View actions...'
-                      ,'props='+str(1 if vw_acts and not rec_on else 0)     # default
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'props=' +str(0 if    rec_on or 0==lmcrs else 1)    # default
+                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)    # enabled
                       ] # i=1
              )] if vw_acts else [])
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)
                       ,'cap=Hot&keys...'
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=2 if vw_acts else i=1
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)
                       ,'cap=Re&name...'
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=3 if vw_acts else i=2
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&Delete...'
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=4 if vw_acts else i=3
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*7+HT_BTN*6,    r=l_btn+WD_BTN, b=0)
                       ,'cap=&Run'
-                      ,'props='+str(1 if not vw_acts and not rec_on else 0)     # default
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'props=' +str(1 if not vw_acts and not rec_on else 0)     # default
+                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=5 if vw_acts else i=4
              )]
             +[c1.join(['type=label'     ,pos_fmt(l=l_btn,               t=GAP*8+HT_BTN*7+3, r=l_btn+int(WD_BTN/3),b=0)
@@ -165,22 +169,22 @@ class Command:
              )]
             +[c1.join(['type=spinedit'  ,pos_fmt(l=l_btn+int(WD_BTN/3)+GAP,   t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN, b=0)
                       ,'props=1,{},1'.format(self.dlg_prs.get('times',  1000))
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=7 if vw_acts else i=6
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*10+HT_BTN*9,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+('&Start record' if not rec_on else '&Stop record')
-                      ,'props='+str(1 if rec_on else 0)     # default
+                      ,'cap={}'.format('&Stop record' if rec_on else '&Start record')
+                      ,'props=' +str(1 if    rec_on or 0==lmcrs else 0)     # default
                       ] # i=8 if vw_acts else i=7
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP*11+HT_BTN*10,    r=l_btn+WD_BTN, b=0)
                       ,'cap=Canc&el record'
-                      ,'en='+str(1 if rec_on else 0)
+                      ,'en='    +str(1 if    rec_on else 0)     # enabled
                       ] # i=9 if vw_acts else i=8
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)
                       ,'cap=C&ustom...'
-                      ,'en='+str(0 if rec_on else 1)
+                      ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=10 if vw_acts else i=9
              )]
             +[c1.join(['type=button'    ,pos_fmt(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)
@@ -192,36 +196,32 @@ class Command:
                       ,'props=0,0,1'    # ro,mono,border
                       ] # i=12
              )] if vw_acts else [])
-            ), apx.icase(                not rec_on, 0
+            ), apx.icase(    vw_acts and not rec_on, 0  # View
+                        ,not vw_acts and not rec_on, 0  # View
                         ,    vw_acts and     rec_on, 8
-                        ,not vw_acts and not rec_on, 7))    # start focus
-            pass;              #LOG and log('ans={}',ans)
+                        ,not vw_acts and     rec_on, 7
+                        ))    # start focus
+            pass;               LOG and log('ans={}',ans)
             if ans is None:  break #while
             (ans_i
             ,vals)  = ans
-            ans_s   = apx.icase(    vw_acts and ans_i==1, 'view'
-                               ,    vw_acts and ans_i==2, 'hotkeys'
-                               ,    vw_acts and ans_i==3, 'rename'
-                               ,    vw_acts and ans_i==4, 'delete'
-                               ,    vw_acts and ans_i==5, 'run'
-                               ,    vw_acts and ans_i==8, 'rec'
-                               ,    vw_acts and ans_i==9, 'cancel'
-                               ,    vw_acts and ans_i==10,'custom'
-                               ,    vw_acts and ans_i==11,'close'
-                              #,not vw_acts and ans_i==1, 'view'
-                               ,not vw_acts and ans_i==1, 'hotkeys'
-                               ,not vw_acts and ans_i==2, 'rename'
-                               ,not vw_acts and ans_i==3, 'delete'
-                               ,not vw_acts and ans_i==4, 'run'
-                               ,not vw_acts and ans_i==7, 'rec'
-                               ,not vw_acts and ans_i==8, 'custom'
-                               ,not vw_acts and ans_i==9, 'close'
-                               ,'?')
+            ans_s   = apx.icase(False,''
+                       ,vw_acts and ans_i==1, 'view'
+                       ,vw_acts and ans_i==2, 'hotkeys' ,not vw_acts and ans_i==1, 'hotkeys'
+                       ,vw_acts and ans_i==3, 'rename'  ,not vw_acts and ans_i==2, 'rename' 
+                       ,vw_acts and ans_i==4, 'delete'  ,not vw_acts and ans_i==3, 'delete' 
+                       ,vw_acts and ans_i==5, 'run'     ,not vw_acts and ans_i==4, 'run'    
+                       ,vw_acts and ans_i==8, 'rec'     ,not vw_acts and ans_i==7, 'rec'    
+                       ,vw_acts and ans_i==9, 'cancel'  ,not vw_acts and ans_i==8, 'cancel' 
+                       ,vw_acts and ans_i==10,'custom'  ,not vw_acts and ans_i==9, 'custom' 
+                       ,vw_acts and ans_i==11,'close'   ,not vw_acts and ans_i==10,'close'  
+                       ,'?')
             mcr_ind = int(vals.splitlines()[0])
             times   = int(vals.splitlines()[7 if vw_acts else 6])
 
-            mcr     = self.macros[mcr_ind]
-            self.last_mcr_id = mcr['id']
+            if 0!=lmcrs:
+                mcr     = self.macros[mcr_ind]
+                self.last_mcr_id = mcr['id']
             
             if ans_s=='close':  break #while
             
@@ -287,7 +287,7 @@ class Command:
                 self.need_dlg = True
                 return ed.cmd(cmds.cmd_MacroStop)
             elif ans_s=='cancel' and     rec_on: #Cancel record
-                ed.cmd(cmds.cmd_MacroCancel)
+                return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode
                 
             if changed:
                 self._do_acts(what)
@@ -308,7 +308,7 @@ class Command:
                                 number,string
                                 py:string_module,string_method,string_param
         '''
-        pass;                  #LOG and log('mcr_record={}',mcr_record)
+        pass;                   LOG and log('mcr_record={}',mcr_record)
         if ''==mcr_record:   return app.msg_status('Empty record')
         def_nm      = ''
         nms     = [mcr['nm'] for mcr in self.macros]
@@ -337,7 +337,7 @@ class Command:
         else:
             while mcr_nm in nms:
                 app.msg_box('Select other name.\nMacros names now:\n\n'+'\n'.join(nms), app.MB_OK)
-                mcr_nm  = app.dlg_input('Name for new macro', mcr_nm)
+                mcr_nm  = app.dlg_input('Macro name', mcr_nm)
                 if mcr_nm is None:   return
         
             id4mcr      = random.randint(10000, 99999)
@@ -398,7 +398,6 @@ class Command:
     def run(self, mcr_id):
         ''' Main (and single) way to run any macro
         '''
-#       mcr_id  = str(mcr_id)
         pass;                  #LOG and log('mcr_id={}',mcr_id)
         mcr     = self.mcr4id.get(str(mcr_id))
         if mcr is None:
@@ -450,7 +449,7 @@ class Command:
 ToDo
 [+][kv-kv][04dec15] Set stable part for run, use free part for name
 [ ][at-kv][04dec15] Store in folder settings\macros for easy copy
-[ ][at-kv][04dec15] Run multuple times
+[+][at-kv][04dec15] Run multuple times
 [ ][kv-kv][04dec15] Optimize: replace ed.cmd() to direct API-function
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
 [ ][kv-kv][08dec15] Test rec: call plug, call macro, call menu
