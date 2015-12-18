@@ -1,3 +1,7 @@
+0.9.6 (2015-12-18)
+added: export/import dlgs
+added: ask Stop/Cont for long executing (if big 'times')
+
 0.9.5 (2015-12-17)
 * rework dlg Macros
 

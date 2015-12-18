@@ -1,5 +1,5 @@
 [info]
-title=Macros for CudaText
+title=Macros
 desc=Macros manager for CudaText. Gives commands to record/playback/save/delete/etc macros.
 type=cudatext-plugin
 subdir=cuda_macros
@@ -12,3 +12,13 @@ events=on_start,on_macro
 section=commands
 caption=Macros...
 method=dlg_config
+
+[item3]
+section=commands
+caption=Export macros...
+method=dlg_export
+
+[item4]
+section=commands
+caption=Import macros...
+method=dlg_import
