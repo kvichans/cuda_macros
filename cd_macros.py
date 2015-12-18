@@ -2,11 +2,11 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '0.9.6 2015-12-18'
+    '0.9.7 2015-12-18'
 ToDo: (see end of file)
 '''
 
-import  os, json, random, datetime
+import  os, json, random, datetime, re
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -14,7 +14,7 @@ import  cudax_lib       as apx
 from    cudax_lib   import log
 
 pass;                           # Logging
-pass;                           LOG = (-2== 2)  # Do or dont logging.
+pass;                           LOG = (-2==-2)  # Do or dont logging.
 
 FROM_API_VERSION= '1.0.114'
 JSON_FORMAT_VER = '20151204'
@@ -110,11 +110,11 @@ class Command:
         while True:
             pass;               LOG and log('sels={}',sels)
             ans = app.dlg_custom('Export macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+55,     b=0)
-                      ,'cap=Export to'
+            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+70,     b=0)
+                      ,'cap=Export &to'
                       ] # i=0
              )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+55,           t=GAP,              r=GAP+WD_LST-25,b=0)
+            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-25,b=0)
                       ,'val={}'.format(exp_file)
                       ] # i=1
              )]
@@ -127,11 +127,11 @@ class Command:
                       ,'val='   + crt+';'+','.join(sels)
                       ] # i=3
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+70*1,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
                       ,'cap=Check &all'
                       ] # i=4
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+70,        t=GAP*3+25+HT_LST,  r=GAP*2+70*2,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
                       ,'cap=U&ncheck all'
                       ] # i=5
              )]
@@ -212,11 +212,11 @@ class Command:
         crt,sels= '0', ['0'] * lmcrs
         while True:
             ans = app.dlg_custom('Import macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+70,     b=0)
-                      ,'cap=Import from'
+            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+80,     b=0)
+                      ,'cap=Import &from'
                       ] # i=0
              )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-25,b=0)
+            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+80,           t=GAP,              r=GAP+WD_LST-25,b=0)
                       ,'val={}'.format(imp_file)
                       ] # i=1
              )]
@@ -229,11 +229,11 @@ class Command:
                       ,'val='   + crt+';'+','.join(sels)
                       ] # i=3
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+70*1,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
                       ,'cap=Check &all'
                       ] # i=4
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+70,        t=GAP*3+25+HT_LST,  r=GAP*2+70*2,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
                       ,'cap=U&ncheck all'
                       ] # i=5
              )]
@@ -660,8 +660,8 @@ class Command:
                 ans = app.msg_box(  'Execution time too long.'
                                +  '\nContinue/Wait/Break?'
                                +'\n\nYes - Continue without control'
-                               +  '\nNo  - Continue more seconds'
-                               +  '\nCancel  - Break execution'
+                               +  '\nNo  - Work yet {} seconds'.format(tm_wait)
+                               +  '\nCancel - Break execution'
                         ,app.MB_YESNOCANCEL)
                 if ans==app.ID_YES:
                     how_t   = 'work'
@@ -681,6 +681,7 @@ class Command:
                                 number,string
                                 py:string_module,string_method,string_param
         '''
+        # Native converting
         evls    = []
         rcs     = rec_data.splitlines()
         for rc in rcs:
@@ -705,6 +706,26 @@ class Command:
                 evls += ["app.app_proc(app.PROC_EXEC_PLUGIN, '{}')".format(rc[3:])]
                 continue #for rc
             pass;               LOG and log('unknown rec-item: {}',rc)
+        
+#       return evls
+        
+        # Optimization
+        # (1) ed.cmd(cmds.cCommand_TextInsert,'A')
+        #     ed.cmd(cmds.cCommand_TextInsert,'B')
+        # convert to
+        #     ed.cmd(cmds.cCommand_TextInsert,'AB')
+        c1          = chr(1)
+        reTI2       = re.compile(  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)"
+                                +   c1
+                                +  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)")
+        evls_c1     = c1.join(evls)
+        (evls_c1
+        ,rpls)      = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
+        while 0 < rpls:
+            (evls_c1
+            ,rpls)  = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
+        evls        = evls_c1.split(c1)
+        pass;                   LOG and log('evls={}',evls)
         return evls
        #def _record_data_to_cmds
 
@@ -718,6 +739,7 @@ ToDo
 [ ][kv-kv][04dec15] Optimize: replace ed.cmd() to direct API-function
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
 [ ][kv-kv][08dec15] Test rec: call plug, call macro, call menu
+[ ][at-kv][18dec15] Check api-ver
 '''
 
 
