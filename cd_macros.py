@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '0.9.7 2015-12-18'
+    '0.9.8 2015-12-19'
 ToDo: (see end of file)
 '''
 
@@ -14,7 +14,7 @@ import  cudax_lib       as apx
 from    cudax_lib   import log
 
 pass;                           # Logging
-pass;                           LOG = (-2==-2)  # Do or dont logging.
+pass;                           LOG = (-2== 2)  # Do or dont logging.
 
 FROM_API_VERSION= '1.0.114'
 JSON_FORMAT_VER = '20151204'
@@ -97,9 +97,11 @@ class Command:
     def dlg_export(self):
         ''' Show dlg for export some macros.
         '''
-        if 0==len(self.macros): return msg_status('No macros for export')
+        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
+        if 0==len(self.macros):                     return msg_status('No macros for export')
         exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
         exp_file= '' if exp_file is None else exp_file
+        exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
         GAP     = 5
         (WD_LST
         ,HT_LST)= (500
@@ -114,11 +116,11 @@ class Command:
                       ,'cap=Export &to'
                       ] # i=0
              )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-25,b=0)
+            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-35,b=0)
                       ,'val={}'.format(exp_file)
                       ] # i=1
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-25,   t=GAP-2,            r=GAP+WD_LST,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP-2,            r=GAP+WD_LST,   b=0)
                       ,'cap=&...'
                       ] # i=2
              )]
@@ -156,17 +158,16 @@ class Command:
                        ,ans_i==7, 'close'
                        )
             if ans_s=='close':  break #while
-#           sels    = vals.splitlines()[2][:-1].split(',')  # 2 - API bug
             v_3     = vals.splitlines()[3]
             crt,sels= v_3.split(';')
-            sels    = sels.strip(',')
-            sels    = sels.split(',')
+            sels    = sels.strip(',').split(',')
             pass;               LOG and log('sels={}',sels)
             if False:pass
             elif ans_s=='file':
                 new_exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
                 if new_exp_file is not None:
                     exp_file    = new_exp_file
+                    exp_file    = exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
             elif ans_s=='all':
                 sels    = ['1'] * lmcrs
             elif ans_s=='no':
@@ -180,47 +181,68 @@ class Command:
            #while True:
        #def dlg_export
         
+    def dlg_import_choose_mcrs(self):
+        l,lt    = '\n', '\n  '
+        while True:
+            imp_file= app.dlg_file(True, '', '', 'Cuda macros|*.cuda-macros|All file|*.*')
+            if imp_file is None:
+                return (None, None)
+            vers_mcrs   = apx._json_loads(open(imp_file).read())
+            if vers_mcrs is None:
+                if app.ID_OK != app.msg_box('No macros in file\n  '+imp_file+'\n\nChoose another file?'
+                    ,app.MB_OKCANCEL):  
+                    return (None, None)
+                continue #while
+            vers        = vers_mcrs.get('vers', {})
+            if (app.app_api_version() < vers.get('ver-api', app.app_api_version())
+            and app.ID_OK != app.msg_box(
+                        'Macros from'
+                    +lt+imp_file    
+                    +l+ 'are recorded in CudaText with version' 
+                    +lt+    '"{}"'
+                    +l+ 'Your CudaText has older version' 
+                    +lt+    '"{}"'
+                    +l+ ''
+                    +l+ 'No guarantee of correct working!'
+                    +l+ ''
+                    +l+ 'Continue import?'.format(vers['ver-app'], app.app_exe_version())
+                    ,   app.MB_OKCANCEL)):
+                return (None, None)
+            mcrs    = vers_mcrs.get('macros', [])
+            if 0!=len(mcrs):
+                break #while
+            if app.ID_OK != app.msg_box('No macros in file\n  '+imp_file+'\n\nChoose another file?'
+                ,app.MB_OKCANCEL):  
+                return (None, None)
+           #while True:
+        return (imp_file, mcrs)
+       #def dlg_import_choose_mcrs
+        
     def dlg_import(self):
         ''' Show dlg for import some macros.
         '''
-        imp_file= app.dlg_file(True, '', '', 'Cuda macros|*.cuda-macros')
+        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
+        (imp_file
+        ,mcrs)  = self.dlg_import_choose_mcrs()
         if imp_file is None:    return
-        
-        vers_mcrs   = apx._json_loads(open(imp_file).read())
-        vers        = vers_mcrs['vers']
-        if vers.get('ver-api', app.app_api_version()) > app.app_api_version():
-            l,lt    = '\n', '\n\t'
-            if app.ID_OK != app.msg_box(
-                    'Macros from'
-                +lt+imp_file    
-                +l+ 'are record in CudaText with version' 
-                +lt+    '"{}"'
-                +l+ 'but you has CudaText with version' 
-                +lt+    '"{}"'
-                +l+ 'No guarantee of correct working.'
-                +l+ ''
-                +l+ 'Continue import?'.format(vers['ver-app'], app.app_exe_version())
-                ,   app.MB_OKCANCEL):
-                return
-        mcrs    = vers_mcrs.get('macros', [])
+        lmcrs   = len(mcrs)
         
         GAP     = 5
         (WD_LST
         ,HT_LST)= (500
                   ,500)
-        lmcrs   = len(mcrs)
-        crt,sels= '0', ['0'] * lmcrs
+        crt,sels= '0', ['1'] * lmcrs
         while True:
             ans = app.dlg_custom('Import macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+80,     b=0)
+            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+85,     b=0)
                       ,'cap=Import &from'
                       ] # i=0
              )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+80,           t=GAP,              r=GAP+WD_LST-25,b=0)
+            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+85,           t=GAP,              r=GAP+WD_LST-35,b=0)
                       ,'val={}'.format(imp_file)
                       ] # i=1
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-25,   t=GAP-2,            r=GAP+WD_LST,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP-2,            r=GAP+WD_LST,   b=0)
                       ,'cap=&...'
                       ] # i=2
              )]
@@ -258,17 +280,19 @@ class Command:
                        ,ans_i==7, 'close'
                        )
             if ans_s=='close':  break #while
-#           sels    = vals.splitlines()[2][:-1].split(',')  # 2 - API bug
             v_3     = vals.splitlines()[3]
             crt,sels= v_3.split(';')
-            sels    = sels.strip(',')
-            sels    = sels.split(',')
+            sels    = sels.strip(',').split(',')
             pass;               LOG and log('sels={}',sels)
             if False:pass
             elif ans_s=='file':
-                new_imp_file= app.dlg_file(True, '', '', 'Cuda macros|*.cuda-macros')
-                if new_imp_file is None: continue #while
+                (new_imp_file
+                ,new_mcrs)  = self.dlg_import_choose_mcrs()
+                if new_imp_file is None:    continue #while
                 imp_file    = new_imp_file
+                mcrs        = new_mcrs
+                lmcrs       = len(mcrs)
+                crt,sels    = '0', ['1'] * lmcrs
             elif ans_s=='all':
                 sels    = ['1'] * lmcrs
             elif ans_s=='no':
@@ -277,20 +301,21 @@ class Command:
                 if '1' not in sels:
                     app.msg_box('Select some names', app.MB_OK)
                     continue
-                (good_imps
-                ,fail_imps) = self.import_from_list([mcr for (ind, mcr) in enumerate(mcrs) if sels[ind]=='1'])
+                (good_nms
+                ,fail_nms) = self.import_from_list([mcr for (ind, mcr) in enumerate(mcrs) if sels[ind]=='1'])
                 l,lt    = '\n', '\n      '
-                app.msg_box(   'Import macros:'     +lt+lt.join(good_imps)
+                app.msg_box(   'Import macros:'     +lt+lt.join(good_nms)
                             +l+''
-                            +l+'Skip duplicates:'   +lt+lt.join(fail_imps)
+                            +l+'Skip duplicates:'   +lt+lt.join(fail_nms)
                            ,app.MB_OK)
 #               self.dlg_config()
 #               return
        #def dlg_import
 
-    def dlg_config_custom(self):
+    def dlg_config(self):
         ''' Show dlg for change macros list.
         '''
+        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         GAP     = 5
@@ -328,7 +353,7 @@ class Command:
             if vw_acts and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
                 mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
-#           dlg_text    = 
+
             ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
             +[C1.join(['type=listbox'   ,POS_FMT(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
                       ,'items=' +'\t'.join(nmkys)
@@ -483,21 +508,15 @@ class Command:
                 return ed.cmd(cmds.cmd_MacroStart)
             elif ans_s=='rec'    and     rec_on: #Stop record
                 self.need_dlg = True
-                return ed.cmd(cmds.cmd_MacroStop)
+                return ed.cmd(cmds.cmd_MacroStop)       # Return for clear rec-mode in StatusBar, will recall from on_macro
             elif ans_s=='cancel' and     rec_on: #Cancel record
-                return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode
+                return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode in StatusBar
                 
             if changed:
                 self._do_acts(what)
            #while True
-       #def dlg_config_custom
-        
-    def dlg_config(self):
-        ''' Show dlg for change macros list.
-        '''
-        return self.dlg_config_custom()
        #def dlg_config
-       
+        
     def on_macro(self, ed_self, mcr_record):
         ''' Finish for macro-recording.
             Params
@@ -514,17 +533,20 @@ class Command:
             def_nm  = 'Macro{}'.format(num)
             if def_nm not in nms:
                 break #for num
-        mcr_nm      = app.dlg_input('Macro name (tricks: "!NM" for rewrite, "=NM" for dialog)', def_nm)
-        if mcr_nm is None:   return
-        mcr_nm      = mcr_nm.strip()
-        if mcr_nm[0]=='=':
-            self.need_dlg = True
-            mcr_nm  = mcr_nm[1:]
-        use_old     = False
-        if mcr_nm[0]=='!':
-            use_old = True
-            mcr_nm  = mcr_nm[1:]
-        if ''==mcr_nm.strip():   return app.msg_status('Empty macro name')
+        while True:
+            mcr_nm      = app.dlg_input('Macro name. Tricks: "!NM" overwrite NM, "=NM" show NM in dialog', def_nm)
+            if mcr_nm is None:   return
+            mcr_nm      = mcr_nm.strip()
+            if ''==mcr_nm:  continue #while
+            if mcr_nm[0]=='=':
+                self.need_dlg = True
+                mcr_nm  = mcr_nm[1:]
+            use_old     = False
+            if ''==mcr_nm:  continue #while
+            if mcr_nm[0]=='!':
+                use_old = True
+                mcr_nm  = mcr_nm[1:]
+            if ''!=mcr_nm:  break #while
         pass;                   LOG and log('self.need_dlg, use_old, mcr_nm={}',(self.need_dlg, use_old, mcr_nm))
         
         if use_old and mcr_nm in nms:
@@ -551,7 +573,7 @@ class Command:
         if self.need_dlg:
             self.need_dlg   = False
             self.last_mcr_id= id4mcr
-            self.dlg_config_custom()
+            self.dlg_config()
        #def on_macro
 
     def export_to_file(self, exp_file, mcrs):
@@ -572,15 +594,15 @@ class Command:
 
     def import_from_list(self, mcrs):
         pass;                   LOG and log('mcrs={}',(mcrs))
-        good_imps   = []
-        fail_imps   = []
+        good_nms    = []
+        fail_nms    = []
         ids         = [mcr['id'] for mcr in self.macros]
         my_mcrs     = [{'nm' :mcr['nm'],'evl':mcr['evl']} for mcr in self.macros]
         for mcr in mcrs:
             if mcr in my_mcrs:
-                fail_imps += [mcr['nm']]
+                fail_nms += [mcr['nm']]
                 continue #for
-            good_imps  += [mcr['nm']]
+            good_nms   += [mcr['nm']]
             id4mcr      = random.randint(10000, 99999)
             while id4mcr in ids:
                 id4mcr  = random.randint(10000, 99999)
@@ -589,9 +611,9 @@ class Command:
                            ,'nm' :mcr['nm']
                            ,'evl':mcr['evl']
                            }]
-        if good_imps:
+        if good_nms:
             self._do_acts()
-        return (good_imps, fail_imps)
+        return (good_nms, fail_nms)
        #def import_from_list
 
     def _do_acts(self, what='', acts='|save|second|reg|keys|menu|'):
@@ -609,7 +631,6 @@ class Command:
         
         # Secondary data
         if '|second|' in acts:
-#           self.mcr4nm     = {mcr['nm']:mcr for mcr in self.macros}
             self.mcr4id     = {str(mcr['id']):mcr for mcr in self.macros}
         
         # Register new subcommands
@@ -657,11 +678,11 @@ class Command:
             if  (how_t=='wait'
             and (rp_ctrl-1) == rp % rp_ctrl
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
-                ans = app.msg_box(  'Execution time too long.'
+                ans = app.msg_box(  'Macro playback time is too long.'
                                +  '\nContinue/Wait/Break?'
                                +'\n\nYes - Continue without control'
-                               +  '\nNo  - Work yet {} seconds'.format(tm_wait)
-                               +  '\nCancel - Break execution'
+                               +  '\nNo  - Wait another {} seconds'.format(tm_wait)
+                               +  '\nCancel - Cancel playback'
                         ,app.MB_YESNOCANCEL)
                 if ans==app.ID_YES:
                     how_t   = 'work'
@@ -698,7 +719,7 @@ class Command:
                         # For ed.cmd(id, text)
                         evls += ["ed.cmd(cmds.{},{})".format(self.CMD_ID2NM[id_cmd], repr(tx_cmd))]
                         continue #for rc
-            elif rc.startswith('py:cuda_macros,dlg_config'):
+            elif rc.startswith('py:cuda_macros,'):
                 # Skip macro-tools
                 continue #for rc
             elif rc[0:3]=='py:':
@@ -714,17 +735,21 @@ class Command:
         #     ed.cmd(cmds.cCommand_TextInsert,'B')
         # convert to
         #     ed.cmd(cmds.cCommand_TextInsert,'AB')
-        c1          = chr(1)
-        reTI2       = re.compile(  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)"
-                                +   c1
-                                +  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)")
-        evls_c1     = c1.join(evls)
-        (evls_c1
-        ,rpls)      = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
-        while 0 < rpls:
+        has_TI          = 1<len([evl for evl in evls 
+                      if                        'cmds.cCommand_TextInsert,' in evl])
+        if has_TI:
+            c1          = chr(1)
+            reTI2       = re.compile(  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)"
+                                    +   c1
+                                    +  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)")
+            evls_c1     = c1.join(evls)
             (evls_c1
-            ,rpls)  = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
-        evls        = evls_c1.split(c1)
+            ,rpls)      = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
+            while 0 < rpls:
+                (evls_c1
+                ,rpls)  = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
+            evls        = evls_c1.split(c1)
+           #if has_TI
         pass;                   LOG and log('evls={}',evls)
         return evls
        #def _record_data_to_cmds
@@ -739,7 +764,7 @@ ToDo
 [ ][kv-kv][04dec15] Optimize: replace ed.cmd() to direct API-function
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
 [ ][kv-kv][08dec15] Test rec: call plug, call macro, call menu
-[ ][at-kv][18dec15] Check api-ver
+[+][at-kv][18dec15] Check api-ver
 '''
 
 
