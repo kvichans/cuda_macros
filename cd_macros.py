@@ -97,8 +97,8 @@ class Command:
     def dlg_export(self):
         ''' Show dlg for export some macros.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
-        if 0==len(self.macros):                     return msg_status('No macros for export')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
+        if 0==len(self.macros):                     return app.msg_status('No macros for export')
         exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
         exp_file= '' if exp_file is None else exp_file
         exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
@@ -221,7 +221,7 @@ class Command:
     def dlg_import(self):
         ''' Show dlg for import some macros.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
         (imp_file
         ,mcrs)  = self.dlg_import_choose_mcrs()
         if imp_file is None:    return
@@ -315,7 +315,7 @@ class Command:
     def dlg_config(self):
         ''' Show dlg for change macros list.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return msg_status('Need update CudaText')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         GAP     = 5
