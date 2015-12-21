@@ -808,7 +808,7 @@ class Command:
             while 0 < rpls:
                 (evls_c1
                 ,rpls)  = reTI2.subn(  r"ed.cmd(cmds.cCommand_TextInsert,'\1\2')", evls_c1)
-            evls        = evls_c1.split(c1)
+            evls        = evls_c1.split(C1)
            #if has_TI
         pass;                   LOG and log('evls={}',evls)
         return evls
