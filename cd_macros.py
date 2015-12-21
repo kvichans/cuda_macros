@@ -325,8 +325,8 @@ class Command:
         pass;                   LOG and log('self.last_mcr_id, mcr_ind={}',(self.last_mcr_id,mcr_ind))
         times   = 1
         waits   = 1
-        chngs   = 0
-        endln   = 0
+        chngs   = '0'
+        endln   = '0'
         while True:
             (WD_LST
             ,HT_LST)= (self.dlg_prs.get('w_list', 300)
@@ -388,7 +388,7 @@ class Command:
              )]
 
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,                   t=GAP*6+HT_BTN*5,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=&Run'
+                      ,'cap=&Run!'
                       ,'props=' +str(1 if not vw_acts and not rec_on else 0)     # default
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=5 if vw_acts else i=4
@@ -399,7 +399,7 @@ class Command:
              )]
             +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*7+HT_BTN*6,   r=l_btn+WD_BTN, b=0)
                       ,'val='   +str(times)
-                      ,'props=1,{},1'.format(self.dlg_prs.get('times',  1000))
+                      ,'props=0,{},1'.format(self.dlg_prs.get('times',  1000))
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=7 if vw_acts else i=6
              )]
@@ -409,7 +409,7 @@ class Command:
              )]
             +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN-40, b=0)
                       ,'val='   +str(waits)
-                      ,'props=1,3600,1'
+                      ,'props=0,3600,1'
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=9 if vw_acts else i=8
              )]
@@ -419,12 +419,12 @@ class Command:
              )]
             +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*9+HT_BTN*8, r=l_btn+WD_BTN,b=0)
                       ,'cap=While text c&hanges'
-                      ,'val='   +str(chngs)
+                      ,'val='   +chngs
                       ] # i=11 if vw_acts else i=10
              )]
             +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*10+HT_BTN*9, r=l_btn+WD_BTN,b=0)
                       ,'cap=Until c&aret on last line'
-                      ,'val='   +str(endln)
+                      ,'val='   +endln
                       ] # i=12 if vw_acts else i=11
              )]
 
@@ -476,19 +476,16 @@ class Command:
             mcr_ind = int(vals.splitlines()[0])
             times   = int(vals.splitlines()[ 7 if vw_acts else  6])
             waits   = int(vals.splitlines()[ 9 if vw_acts else  8])
-            chngs   = int(vals.splitlines()[11 if vw_acts else 10])
-            endln   = int(vals.splitlines()[12 if vw_acts else 10])
+            chngs   =     vals.splitlines()[11 if vw_acts else 10]
+            endln   =     vals.splitlines()[12 if vw_acts else 11]
+            pass;               LOG and log('mcr_ind,times,waits,chngs,endln={}',(mcr_ind,times,waits,chngs,endln))
 
-            if 0!=lmcrs:
+            if 0!=lmcrs and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
                 self.last_mcr_id = mcr['id']
             
             if ans_s=='close':  break #while
-            
-            what    = ''
-            changed = False
-            if False:pass
-            elif ans_s=='custom': #Custom
+            if ans_s=='custom': #Custom
                 custs   = app.dlg_input_ex(5, 'Custom dialog Macros'
                     , 'Height of macro list (min 450)'          , str(self.dlg_prs.get('h_list', 400))
                     , 'Width of macro list (min 200)'           , str(self.dlg_prs.get('w_list', 500))
@@ -504,6 +501,14 @@ class Command:
                     self.dlg_prs['times']   = max(100, int(custs[4]))
                     open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
                 continue #while
+            
+            if mcr_ind not in range(lmcrs):
+                app.msg_box('Select macro', app.MB_OK)
+                continue #while
+            
+            what    = ''
+            changed = False
+            if False:pass
                 
             elif ans_s=='view': #View
                 continue #while
@@ -536,7 +541,13 @@ class Command:
                 changed = True
 
             elif ans_s=='run': #Run
-                self.run(mcr['id'], max(1, times), max(1, waits), chngs=='1', endln=='1')
+                if (times==0 
+                and waits==0
+                and chngs=='0'
+                and endln=='0'):
+                    app.msg_box('Select stop condition', app.MB_OK)
+                    continue
+                self.run(mcr['id'], max(0, times), max(0, waits), chngs=='1', endln=='1')
                 return
 
             elif ans_s=='rec'    and not rec_on: #Start record
@@ -698,24 +709,27 @@ class Command:
     def run(self, mcr_id, times=1, waits=0, while_chngs=False, till_endln=False):
         ''' Main (and single) way to run any macro
         '''
-        pass;                  #LOG and log('mcr_id={}',mcr_id)
+        pass;                   LOG and log('mcr_id, times, waits, while_chngs, till_endln={}',(mcr_id, times, waits, while_chngs, till_endln))
         mcr     = self.mcr4id.get(str(mcr_id))
         if mcr is None:
+            pass;               LOG and log('no id',)
             return app.msg_status('No macros: {}'.format(mcr_id))
         cmds4eval   = ';'.join(mcr['evl'])
-        pass;                  #LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
+        pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         how_t       = 'wait'
         rp_ctrl     = self.tm_ctrl.get('rp_ctrl', 1000)                     # testing one of 1000 execution
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
         start_t     = datetime.datetime.now()
         pre_body    = '' if not while_chngs else ed.get_text_all()
-        for rp in range(times):
+        for rp in range(times if times>0 else 0xffffffff):
             exec(cmds4eval)
             if till_endln and ed.get_carets()[0][1] == ed.get_line_count()-1:
+                pass;           LOG and log('break endln',)
                 break   #for rp
             if while_chngs:
                 new_body    = ed.get_text_all()
                 if pre_body == new_body:    
+                    pass;       LOG and log('break no change',)
                     break   #for rp
                 pre_body    = new_body
             if  (how_t=='wait'
@@ -750,6 +764,7 @@ class Command:
                 if ans=='wait':
                     start_t = datetime.datetime.now()
                 if ans=='break':
+                    pass;       LOG and log('break by user',)
                     break   #for rp
            #for rp
         self.last_mcr_id = mcr_id
