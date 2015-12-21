@@ -1,3 +1,6 @@
+0.9.9 (2015-12-21)
+added: stop conditions: wait secs, while text changes, until caret on last line
+
 0.9.8 (2015-12-19)
 added: check API version
 
