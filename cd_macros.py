@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '0.9.8 2015-12-19'
+    '0.9.9 2015-12-21'
 ToDo: (see end of file)
 '''
 
@@ -324,7 +324,7 @@ class Command:
         mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
         pass;                   LOG and log('self.last_mcr_id, mcr_ind={}',(self.last_mcr_id,mcr_ind))
         times   = 1
-        waits   = 1
+        waits   = 5
         chngs   = '0'
         endln   = '0'
         while True:
@@ -409,7 +409,7 @@ class Command:
              )]
             +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN-40, b=0)
                       ,'val='   +str(waits)
-                      ,'props=0,3600,1'
+                      ,'props=1,3600,1'
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=9 if vw_acts else i=8
              )]
