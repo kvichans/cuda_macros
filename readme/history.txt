@@ -1,3 +1,6 @@
+1.0.1 (2015-12-22)
+change: rename cmds with "Macros: ..."
+
 0.9.9 (2015-12-21)
 added: stop conditions: wait secs, while text changes, until caret on last line
 

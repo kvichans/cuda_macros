@@ -2,11 +2,11 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '0.9.9 2015-12-21'
+    '1.0.1 2015-12-22'
 ToDo: (see end of file)
 '''
 
-import  os, json, random, datetime, re
+import  os, json, random, datetime, re, sys
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -24,6 +24,45 @@ C1      = chr(1)
 C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
 GAP     = 5
+def top_plus_for_os(what_control, base_control='edit'):
+    ''' Addition for what_top to align text with base.
+        Params
+            what_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
+            base_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
+    '''
+    base_control    = apx.icase(base_control=='combo',      'edit'
+                               ,base_control=='combo_ro',   'button'
+                               ,base_control)
+    what_control    = apx.icase(what_control=='combo',      'edit'
+                               ,what_control=='combo_ro',   'button'
+                               ,what_control)
+    if what_control==base_control:
+        return 0
+    env = sys.platform
+    if base_control=='edit': 
+        if env=='win32':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   3
+                            ,what_control=='button', -1
+                            ,True,                    0)
+        if env=='linux':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   5
+                            ,what_control=='button',  1
+                            ,True,                    0)
+        if env=='darwin':
+            return apx.icase(what_control=='check',   1
+                            ,what_control=='label',   3
+                            ,what_control=='button',  0
+                            ,True,                    0)
+        return 0
+       #if base_control=='edit'
+    return top_plus_for_os(what_control, 'edit') - top_plus_for_os(base_control, 'edit')
+   #def top_plus_for_os
+
+at4chk  = top_plus_for_os('check')
+at4lbl  = top_plus_for_os('label')
+at4btn  = top_plus_for_os('button')
 
 class Command:
     CMD_ID2NM   = {}    # {val: name} from cudatext_cmd.py
@@ -112,7 +151,7 @@ class Command:
         while True:
             pass;               LOG and log('sels={}',sels)
             ans = app.dlg_custom('Export macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+70,     b=0)
+            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+70,     b=0)
                       ,'cap=Export &to'
                       ] # i=0
              )]
@@ -120,7 +159,7 @@ class Command:
                       ,'val={}'.format(exp_file)
                       ] # i=1
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP-2,            r=GAP+WD_LST,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
                       ,'cap=&...'
                       ] # i=2
              )]
@@ -227,14 +266,13 @@ class Command:
         if imp_file is None:    return
         lmcrs   = len(mcrs)
         
-        GAP     = 5
         (WD_LST
         ,HT_LST)= (500
                   ,500)
         crt,sels= '0', ['1'] * lmcrs
         while True:
             ans = app.dlg_custom('Import macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+3,            r=GAP+85,     b=0)
+            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+85,     b=0)
                       ,'cap=Import &from'
                       ] # i=0
              )]
@@ -242,7 +280,7 @@ class Command:
                       ,'val={}'.format(imp_file)
                       ] # i=1
              )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP-2,            r=GAP+WD_LST,   b=0)
+            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
                       ,'cap=&...'
                       ] # i=2
              )]
@@ -318,7 +356,6 @@ class Command:
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-        GAP     = 5
         
         ids     = [mcr['id'] for mcr in self.macros]
         mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
@@ -366,7 +403,7 @@ class Command:
                       ] # i=0
              )]
             +([C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=&View actions...'
+                      ,'cap=&View actions'
                       ,'props=' +str(0 if    rec_on or 0==lmcrs else 1)    # default
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)    # enabled
                       ] # i=1
@@ -387,42 +424,42 @@ class Command:
                       ] # i=4 if vw_acts else i=3
              )]
 
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,                   t=GAP*6+HT_BTN*5,    r=l_btn+WD_BTN, b=0)
+            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,                   t=GAP*6+HT_BTN*5,       r=l_btn+WD_BTN, b=0)
                       ,'cap=&Run!'
                       ,'props=' +str(1 if not vw_acts and not rec_on else 0)     # default
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=5 if vw_acts else i=4
              )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*7+HT_BTN*6+3, r=l_btn+int(WD_BTN/3),b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*7+HT_BTN*6+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
                       ,'cap=&Times'
                       ] # i=6 if vw_acts else i=5
              )]
-            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*7+HT_BTN*6,   r=l_btn+WD_BTN, b=0)
+            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*7+HT_BTN*6,       r=l_btn+WD_BTN, b=0)
                       ,'val='   +str(times)
                       ,'props=0,{},1'.format(self.dlg_prs.get('times',  1000))
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=7 if vw_acts else i=6
              )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*8+HT_BTN*7+3, r=l_btn+int(WD_BTN/3),b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
                       ,'cap=&Wait'
                       ] # i=8 if vw_acts else i=7
              )]
-            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,   r=l_btn+WD_BTN-40, b=0)
+            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,       r=l_btn+WD_BTN-40, b=0)
                       ,'val='   +str(waits)
                       ,'props=1,3600,1'
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=9 if vw_acts else i=8
              )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn+WD_BTN-40+GAP,     t=GAP*8+HT_BTN*7+3, r=l_btn+WD_BTN,b=0)
+            +[C1.join(['type=label'     ,POS_FMT(l=l_btn+WD_BTN-40+GAP,     t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+WD_BTN,b=0)
                       ,'cap=sec'
                       ] # i=10 if vw_acts else i=9
              )]
-            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*9+HT_BTN*8, r=l_btn+WD_BTN,b=0)
+            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*9+HT_BTN*8,       r=l_btn+WD_BTN,b=0)
                       ,'cap=While text c&hanges'
                       ,'val='   +chngs
                       ] # i=11 if vw_acts else i=10
              )]
-            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*10+HT_BTN*9, r=l_btn+WD_BTN,b=0)
+            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*10+HT_BTN*9,      r=l_btn+WD_BTN,b=0)
                       ,'cap=Until c&aret on last line'
                       ,'val='   +endln
                       ] # i=12 if vw_acts else i=11
@@ -440,7 +477,7 @@ class Command:
              )]
 
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)
-                      ,'cap=C&ustom...'
+                      ,'cap=Ad&just...'
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=15 if vw_acts else i=14
              )]
@@ -682,7 +719,7 @@ class Command:
         # Register new subcommands
         if '|reg|' in acts:
             reg_subs        = 'cuda_macros;run;{}'.format('\n'.join(
-                             'macro: {}\t{}'.format(mcr['nm'],mcr['id']) 
+                             'Macros: {}\t{}'.format(mcr['nm'],mcr['id']) 
                                  for mcr in self.macros)
                              )
             pass;              #LOG and log('reg_subs={}',reg_subs)
@@ -737,19 +774,19 @@ class Command:
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
                 WD_BTN  = 220
                 ans = app.dlg_custom(  'Playback macro', GAP*2+WD_BTN, GAP*7+4*25,  '\n'.join([]
-                    +[C1.join(['type=label'     ,POS_FMT(l=GAP,  t=GAP*1+25*0+3,   r=GAP+WD_BTN, b=0)
+                    +[C1.join(['type=label'     ,POS_FMT(l=GAP,  t=GAP*1+25*0+at4lbl,   r=GAP+WD_BTN, b=0)
                               ,'cap=Macro playback time is too long'
                               ] # i=0
                      )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*2+25*1,    r=GAP+WD_BTN, b=0)
+                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*2+25*1,          r=GAP+WD_BTN, b=0)
                               ,'cap=Wait &another {} sec'.format(tm_wait)
                               ] # i=1
                      )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*3+25*2,    r=GAP+WD_BTN, b=0)
+                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*3+25*2,          r=GAP+WD_BTN, b=0)
                               ,'cap=Continue &without control'
                               ] # i=2
                      )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*6+25*3,    r=GAP+WD_BTN, b=0)
+                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*6+25*3,          r=GAP+WD_BTN, b=0)
                               ,'cap=&Cancel playback [ESC]'
                               ] # i=3
                      )]
@@ -840,6 +877,7 @@ ToDo
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
 [ ][kv-kv][08dec15] Test rec: call plug, call macro, call menu
 [+][at-kv][18dec15] Check api-ver
+[?][kv-kv][11jan16] Use PROC_SET_ESCAPE
 '''
 
 
