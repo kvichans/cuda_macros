@@ -3,6 +3,7 @@ title=Macros
 desc=Macros manager for CudaText. Gives commands to record/playback/save/delete/etc macros.
 type=cudatext-plugin
 subdir=cuda_macros
+homepage=https://github.com/kvichans/cuda_macros
 
 [item1]
 section=events

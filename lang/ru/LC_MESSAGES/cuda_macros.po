@@ -1,0 +1,282 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-03-12 20:57+0300\n"
+"PO-Revision-Date: 2016-03-12 21:24+0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.7\n"
+"Last-Translator: kvichans <kvichans@mail.ru>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
+
+#: cd_macros.py:139
+msgid "&Macros..."
+msgstr "&Макросы..."
+
+#: cd_macros.py:141 cd_macros.py:486
+msgid "&Start record"
+msgstr "&Начать запись..."
+
+#: cd_macros.py:142
+msgid "St&op record"
+msgstr "Закон&чить запись"
+
+#: cd_macros.py:143
+msgid "&Cancel record"
+msgstr "&Отменить запись"
+
+#: cd_macros.py:145
+msgid "&Export..."
+msgstr "&Экспорт..."
+
+#: cd_macros.py:146
+msgid "&Import..."
+msgstr "&Импорт"
+
+#: cd_macros.py:149
+msgid "&Run"
+msgstr "&Запустить"
+
+#: cd_macros.py:157 cd_macros.py:280 cd_macros.py:373
+msgid "Need update CudaText"
+msgstr "Требуется обновление CudaText"
+
+#: cd_macros.py:158
+msgid "No macros for export"
+msgstr "Не выбраны макросы для экспорта"
+
+#: cd_macros.py:172
+msgid "Export &to"
+msgstr "Экспортировать &в"
+
+#: cd_macros.py:180 cd_macros.py:301
+msgid "&..."
+msgstr "&..."
+
+#: cd_macros.py:189 cd_macros.py:310
+msgid "Check &all"
+msgstr "Выбрать вс&е"
+
+#: cd_macros.py:193 cd_macros.py:314
+msgid "U&ncheck all"
+msgstr "Сн&ять выбор"
+
+#: cd_macros.py:197
+msgid "&Export"
+msgstr "&Экспорт"
+
+#: cd_macros.py:201 cd_macros.py:322 cd_macros.py:502
+msgid "Close"
+msgstr "Закрыть"
+
+#: cd_macros.py:248 cd_macros.py:270
+msgid ""
+"No macros in file\n"
+"  {}\n"
+"\n"
+"Choose another file?"
+msgstr ""
+"Не найдены макросы\n"
+"  {}\n"
+"\n"
+"Выбрать другой файл?"
+
+#: cd_macros.py:255
+msgid "Macros from"
+msgstr "Макросы из"
+
+#: cd_macros.py:257
+msgid "are recorded in CudaText with version"
+msgstr "записаны в CudaText другой версии"
+
+#: cd_macros.py:259
+msgid "Your CudaText has older version"
+msgstr "Ваш CudaText имеет более старую версию"
+
+#: cd_macros.py:262
+msgid "No guarantee of correct working!"
+msgstr "Корректная работа не гарантируется!"
+
+#: cd_macros.py:264
+msgid "Continue import?"
+msgstr "Продолжить импорт?"
+
+#: cd_macros.py:293
+msgid "Import &from"
+msgstr "Импорт и&з"
+
+#: cd_macros.py:318
+msgid "&Import"
+msgstr "&Импорт"
+
+#: cd_macros.py:357
+msgid "Select some names"
+msgstr "Укажите имена"
+
+#: cd_macros.py:362
+msgid "Import macros:"
+msgstr "Макросы для импорта:"
+
+#: cd_macros.py:364
+msgid "Skip duplicates:"
+msgstr "Пропускать дубли:"
+
+#: cd_macros.py:415
+msgid "Macros"
+msgstr "Макросы"
+
+#: cd_macros.py:423
+msgid "&View actions"
+msgstr "&Просмотр действий"
+
+#: cd_macros.py:429
+msgid "Hot&keys..."
+msgstr "Со&четания..."
+
+#: cd_macros.py:434
+msgid "Re&name..."
+msgstr "П&ереименовать..."
+
+#: cd_macros.py:439
+msgid "&Delete..."
+msgstr "&Удалить..."
+
+#: cd_macros.py:445
+msgid "&Run!"
+msgstr "&Запустить!"
+
+#: cd_macros.py:451
+msgid "&Times"
+msgstr "П&овторы"
+
+#: cd_macros.py:461
+msgid "&Wait"
+msgstr "О&жидать"
+
+#: cd_macros.py:471
+msgid "sec"
+msgstr "сек"
+
+#: cd_macros.py:475
+msgid "While text c&hanges"
+msgstr "По&ка изменяется текст"
+
+#: cd_macros.py:480
+msgid "Until c&aret on last line"
+msgstr "Пока каретка &до посл.строки"
+
+#: cd_macros.py:486
+msgid "&Stop record"
+msgstr "Закон&чить запись"
+
+#: cd_macros.py:491
+msgid "Canc&el record"
+msgstr "&Отменить запись"
+
+#: cd_macros.py:497
+msgid "Ad&just..."
+msgstr "Подстроит&ь..."
+
+#: cd_macros.py:543
+msgid "Custom dialog Macros"
+msgstr "Подстройка диалога Макросы"
+
+#: cd_macros.py:544
+msgid "Height of macro list (min 450)"
+msgstr "Высота списка макросов              (мин 450)"
+
+#: cd_macros.py:545
+msgid "Width of macro list (min 200)"
+msgstr "Ширина списка макросов              (мин 200)"
+
+#: cd_macros.py:546
+msgid "Width of action list (min 200, <=0-hide)"
+msgstr "Ширина списка действий (мин 150, <=0-спрятать)"
+
+#: cd_macros.py:547
+msgid "Width of buttons (min 150)"
+msgstr "Ширина кнопок                       (мин 150)"
+
+#: cd_macros.py:548
+msgid "Max run times (min 100)"
+msgstr "Максимально число повторов          (мин 100)"
+
+#: cd_macros.py:560
+msgid "Select macro"
+msgstr "Укажите макрос"
+
+#: cd_macros.py:571 cd_macros.py:576
+msgid "New name for: {}"
+msgstr "Новое имя для: {}"
+
+#: cd_macros.py:575
+msgid ""
+"Select other name.\n"
+"Macro names now are:\n"
+"\n"
+msgstr ""
+"Укажите другое имя.\n"
+"Уже использованные имена:\n"
+"\n"
+
+#: cd_macros.py:585
+msgid ""
+"Delete macro\n"
+"    {}"
+msgstr ""
+"Удалить макрос\n"
+"    {}"
+
+#: cd_macros.py:602
+msgid "Select stop condition"
+msgstr "Укажите условие остановки"
+
+#: cd_macros.py:629
+msgid "Empty record"
+msgstr "Пустая запись"
+
+#: cd_macros.py:637
+msgid "Macro name. Tricks: \"!NM\" overwrite NM, \"=NM\" show NM in dialog"
+msgstr "Имя макроса. Спец.знаки: \"!NM\" заменит NM, \"=NM\" откроет NM в диалоге"
+
+#: cd_macros.py:659
+msgid ""
+"Select other name.\n"
+"Macros names now:\n"
+"\n"
+msgstr ""
+"Укажите другое имя.\n"
+"Уже использованные имена:\n"
+"\n"
+
+#: cd_macros.py:770
+msgid "No macros: {}"
+msgstr "Нет макросов: {}"
+
+#: cd_macros.py:793
+msgid "Playback macro"
+msgstr "Выполнить макрос"
+
+#: cd_macros.py:795
+msgid "Macro playback time is too long"
+msgstr "Макрос выполняется слишком долго"
+
+#: cd_macros.py:799
+msgid "Wait &another {} sec"
+msgstr "Ждать е&ще {} сек"
+
+#: cd_macros.py:803
+msgid "Continue &without control"
+msgstr "Продолжить выполнение без контроля"
+
+#: cd_macros.py:807
+msgid "&Cancel playback [ESC]"
+msgstr "&Отменить выполнение [Esc]"

@@ -2,11 +2,11 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.2 2016-03-08'
+    '1.1.0 2016-03-12'
 ToDo: (see end of file)
 '''
 
-import  os, json, random, datetime, re, sys
+import  os, json, random, datetime, re, sys, gettext
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -19,6 +19,19 @@ pass;                           LOG = (-2== 2)  # Do or dont logging.
 FROM_API_VERSION= '1.0.114'
 JSON_FORMAT_VER = '20151204'
 MACROS_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'macros.json'
+
+THIS    = 'cuda_macros'
+THIS_DIR= app.app_path(app.APP_DIR_EXE)+'/py/{0}/'.format(THIS)
+
+# Localization
+_       = lambda x: x
+lng     = app.app_proc(app.PROC_GET_LANG, '')[:2].lower()
+lng_mo  = THIS_DIR+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, THIS)
+if os.path.isfile(lng_mo):
+    t   = gettext.translation(THIS, THIS_DIR+'/lang', languages=[lng])
+    _   = t.gettext
+    t.install()
+
 
 C1      = chr(1)
 C2      = chr(2)
@@ -114,7 +127,7 @@ class Command:
             # Create
             top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top').splitlines()
             pass;              #LOG and log('top_nms={}',top_nms)
-            if app.app_exe_version() >= '1.2.28.0':
+            if app.app_api_version() >= '1.0.131':
                 plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]     ##?? 
             else: # old, pre i18n
                 plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
@@ -122,17 +135,17 @@ class Command:
             ed.macros_id_menu = id_menu                 ##?? dirty hack!
 
         # Fill
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config','&Macros...'))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config',_('&Macros...')))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart,     '&Start record'))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,      'St&op record'))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,    '&Cancel record'))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart,     _('&Start record')))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,      _('St&op record')))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,    _('&Cancel record')))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_export','&Export...'))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_import','&Import...'))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_export',_('&Export...')))
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_import',_('&Import...')))
         if 0==len(self.macros): return
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        id_sub  = app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, '&Run'))
+        id_sub  = app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, _('&Run')))
         for mcr in self.macros:
             app.app_proc(app.PROC_MENU_ADD, '{};{}{};{}'.format(id_sub, 'cuda_macros,run,',mcr['id'], mcr['nm']))
        #def _adapt_menu
@@ -140,8 +153,8 @@ class Command:
     def dlg_export(self):
         ''' Show dlg for export some macros.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
-        if 0==len(self.macros):                     return app.msg_status('No macros for export')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
+        if 0==len(self.macros):                     return app.msg_status(_('No macros for export'))
         exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
         exp_file= '' if exp_file is None else exp_file
         exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
@@ -155,7 +168,7 @@ class Command:
             pass;               LOG and log('sels={}',sels)
             ans = app.dlg_custom('Export macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
             +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+70,     b=0)
-                      ,'cap=Export &to'
+                      ,'cap='+_('Export &to')
                       ] # i=0
              )]
             +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-35,b=0)
@@ -163,7 +176,7 @@ class Command:
                       ] # i=1
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
-                      ,'cap=&...'
+                      ,'cap='+_('&...')
                       ] # i=2
              )]
             +[C1.join(['type=checklistbox' ,POS_FMT(l=GAP,             t=GAP*2+30,          r=GAP+WD_LST,   b=GAP+25+HT_LST)
@@ -172,19 +185,19 @@ class Command:
                       ] # i=3
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
-                      ,'cap=Check &all'
+                      ,'cap='+_('Check &all')
                       ] # i=4
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
-                      ,'cap=U&ncheck all'
+                      ,'cap='+_('U&ncheck all')
                       ] # i=5
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=    WD_LST-60*2, t=GAP*3+25+HT_LST,  r=    WD_LST-60*1,   b=0)
-                      ,'cap=&Export'
+                      ,'cap='+_('&Export')
                       ] # i=6
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP+WD_LST-60*1, t=GAP*3+25+HT_LST,  r=GAP+WD_LST-60*0,   b=0)
-                      ,'cap=&Close'
+                      ,'cap='+_('Close')
                       ] # i=7
              )]
             ), 3)    # start focus
@@ -231,29 +244,29 @@ class Command:
                 return (None, None)
             vers_mcrs   = apx._json_loads(open(imp_file).read())
             if vers_mcrs is None:
-                if app.ID_OK != app.msg_box('No macros in file\n  '+imp_file+'\n\nChoose another file?'
+                if app.ID_OK != app.msg_box(_('No macros in file\n  {}\n\nChoose another file?').format(imp_file)
                     ,app.MB_OKCANCEL):  
                     return (None, None)
                 continue #while
             vers        = vers_mcrs.get('vers', {})
             if (app.app_api_version() < vers.get('ver-api', app.app_api_version())
             and app.ID_OK != app.msg_box(
-                        'Macros from'
+                        _('Macros from')
                     +lt+imp_file    
-                    +l+ 'are recorded in CudaText with version' 
+                    +l+ _('are recorded in CudaText with version') 
                     +lt+    '"{}"'
-                    +l+ 'Your CudaText has older version' 
+                    +l+ _('Your CudaText has older version')
                     +lt+    '"{}"'
                     +l+ ''
-                    +l+ 'No guarantee of correct working!'
+                    +l+ _('No guarantee of correct working!')
                     +l+ ''
-                    +l+ 'Continue import?'.format(vers['ver-app'], app.app_exe_version())
+                    +l+ _('Continue import?').format(vers['ver-app'], app.app_exe_version())
                     ,   app.MB_OKCANCEL)):
                 return (None, None)
             mcrs    = vers_mcrs.get('macros', [])
             if 0!=len(mcrs):
                 break #while
-            if app.ID_OK != app.msg_box('No macros in file\n  '+imp_file+'\n\nChoose another file?'
+            if app.ID_OK != app.msg_box(_('No macros in file\n  {}\n\nChoose another file?').format(imp_file)
                 ,app.MB_OKCANCEL):  
                 return (None, None)
            #while True:
@@ -263,7 +276,7 @@ class Command:
     def dlg_import(self):
         ''' Show dlg for import some macros.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         (imp_file
         ,mcrs)  = self.dlg_import_choose_mcrs()
         if imp_file is None:    return
@@ -276,7 +289,7 @@ class Command:
         while True:
             ans = app.dlg_custom('Import macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
             +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+85,     b=0)
-                      ,'cap=Import &from'
+                      ,'cap='+_('Import &from')
                       ] # i=0
              )]
             +[C1.join(['type=edit'         ,POS_FMT(l=GAP+85,           t=GAP,              r=GAP+WD_LST-35,b=0)
@@ -284,7 +297,7 @@ class Command:
                       ] # i=1
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
-                      ,'cap=&...'
+                      ,'cap='+_('&...')
                       ] # i=2
              )]
             +[C1.join(['type=checklistbox' ,POS_FMT(l=GAP,             t=GAP*2+30,          r=GAP+WD_LST,   b=GAP+25+HT_LST)
@@ -293,19 +306,19 @@ class Command:
                       ] # i=3
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
-                      ,'cap=Check &all'
+                      ,'cap='+_('Check &all')
                       ] # i=4
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
-                      ,'cap=U&ncheck all'
+                      ,'cap='+_('U&ncheck all')
                       ] # i=5
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=    WD_LST-60*2, t=GAP*3+25+HT_LST,  r=    WD_LST-60*1,   b=0)
-                      ,'cap=&Import'
+                      ,'cap='+_('&Import')
                       ] # i=6
              )]
             +[C1.join(['type=button'        ,POS_FMT(l=GAP+WD_LST-60*1, t=GAP*3+25+HT_LST,  r=GAP+WD_LST-60*0,   b=0)
-                      ,'cap=&Close'
+                      ,'cap='+_('Close')
                       ] # i=7
              )]
             ), 3)    # start focus
@@ -340,14 +353,14 @@ class Command:
                 sels    = ['0'] * lmcrs
             elif ans_s=='imp':
                 if '1' not in sels:
-                    app.msg_box('Select some names', app.MB_OK)
+                    app.msg_box(_('Select some names'), app.MB_OK)
                     continue
                 (good_nms
                 ,fail_nms) = self.import_from_list([mcr for (ind, mcr) in enumerate(mcrs) if sels[ind]=='1'])
                 l,lt    = '\n', '\n      '
-                app.msg_box(   'Import macros:'     +lt+lt.join(good_nms)
+                app.msg_box(   _('Import macros:')     +lt+lt.join(good_nms)
                             +l+''
-                            +l+'Skip duplicates:'   +lt+lt.join(fail_nms)
+                            +l+_('Skip duplicates:')   +lt+lt.join(fail_nms)
                            ,app.MB_OK)
 #               self.dlg_config()
 #               return
@@ -356,7 +369,7 @@ class Command:
     def dlg_config(self):
         ''' Show dlg for change macros list.
         '''
-        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status('Need update CudaText')
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
         
@@ -398,7 +411,7 @@ class Command:
                 mcr     = self.macros[mcr_ind]
                 mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
 
-            ans = app.dlg_custom('Macros'   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
+            ans = app.dlg_custom(_('Macros')   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
             +[C1.join(['type=listbox'   ,POS_FMT(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
                       ,'items=' +'\t'.join(nmkys)
                       ,'val='   +str(mcr_ind)  # start sel
@@ -406,35 +419,35 @@ class Command:
                       ] # i=0
              )]
             +([C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=&View actions'
+                      ,'cap='+_('&View actions')
                       ,'props=' +str(0 if    rec_on or 0==lmcrs else 1)    # default
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)    # enabled
                       ] # i=1
              )] if vw_acts else [])
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=Hot&keys...'
+                      ,'cap='+_('Hot&keys...')
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=2 if vw_acts else i=1
              )]
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=Re&name...'
+                      ,'cap='+_('Re&name...')
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=3 if vw_acts else i=2
              )]
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=&Delete...'
+                      ,'cap='+_('&Delete...')
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=4 if vw_acts else i=3
              )]
 
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,                   t=GAP*6+HT_BTN*5,       r=l_btn+WD_BTN, b=0)
-                      ,'cap=&Run!'
+                      ,'cap='+_('&Run!')
                       ,'props=' +str(1 if not vw_acts and not rec_on else 0)     # default
                       ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
                       ] # i=5 if vw_acts else i=4
              )]
             +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*7+HT_BTN*6+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
-                      ,'cap=&Times'
+                      ,'cap='+_('&Times')
                       ] # i=6 if vw_acts else i=5
              )]
             +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*7+HT_BTN*6,       r=l_btn+WD_BTN, b=0)
@@ -444,7 +457,7 @@ class Command:
                       ] # i=7 if vw_acts else i=6
              )]
             +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
-                      ,'cap=&Wait'
+                      ,'cap='+_('&Wait')
                       ] # i=8 if vw_acts else i=7
              )]
             +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,       r=l_btn+WD_BTN-40, b=0)
@@ -454,38 +467,38 @@ class Command:
                       ] # i=9 if vw_acts else i=8
              )]
             +[C1.join(['type=label'     ,POS_FMT(l=l_btn+WD_BTN-40+GAP,     t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+WD_BTN,b=0)
-                      ,'cap=sec'
+                      ,'cap='+_('sec')
                       ] # i=10 if vw_acts else i=9
              )]
             +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*9+HT_BTN*8,       r=l_btn+WD_BTN,b=0)
-                      ,'cap=While text c&hanges'
+                      ,'cap='+_('While text c&hanges')
                       ,'val='   +chngs
                       ] # i=11 if vw_acts else i=10
              )]
             +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*10+HT_BTN*9,      r=l_btn+WD_BTN,b=0)
-                      ,'cap=Until c&aret on last line'
+                      ,'cap='+_('Until c&aret on last line')
                       ,'val='   +endln
                       ] # i=12 if vw_acts else i=11
              )]
 
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*12+HT_BTN*11,    r=l_btn+WD_BTN, b=0)
-                      ,'cap={}'.format('&Stop record' if rec_on else '&Start record')
+                      ,'cap={}'.format(_('&Stop record') if rec_on else _('&Start record'))
                       ,'props=' +str(1 if    rec_on or 0==lmcrs else 0)     # default
                       ] # i=13 if vw_acts else i=12
              )]
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*13+HT_BTN*12,    r=l_btn+WD_BTN, b=0)
-                      ,'cap=Canc&el record'
+                      ,'cap='+_('Canc&el record')
                       ,'en='    +str(1 if    rec_on else 0)     # enabled
                       ] # i=14 if vw_acts else i=13
              )]
 
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)
-                      ,'cap=Ad&just...'
+                      ,'cap='+_('Ad&just...')
                       ,'en='    +str(0 if    rec_on else 1)     # enabled
                       ] # i=15 if vw_acts else i=14
              )]
             +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)
-                      ,'cap=&Close'
+                      ,'cap='+_('Close')
                       ] # i=16 if vw_acts else i=15
              )]
             +([C1.join(['type=memo'      ,POS_FMT(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
@@ -526,12 +539,12 @@ class Command:
             
             if ans_s=='close':  break #while
             if ans_s=='custom': #Custom
-                custs   = app.dlg_input_ex(5, 'Custom dialog Macros'
-                    , 'Height of macro list (min 450)'          , str(self.dlg_prs.get('h_list', 400))
-                    , 'Width of macro list (min 200)'           , str(self.dlg_prs.get('w_list', 500))
-                    , 'Width of action list (min 200, <=0-hide)', str(self.dlg_prs.get('w_acts', 500))
-                    , 'Width of buttons (min 150)'              , str(self.dlg_prs.get('w_btn',  150))
-                    , 'Max run times (min 100)'                 , str(self.dlg_prs.get('times',  1000))
+                custs   = app.dlg_input_ex(5, _('Custom dialog Macros')
+                    , _('Height of macro list (min 450)')          , str(self.dlg_prs.get('h_list', 400))
+                    , _('Width of macro list (min 200)')           , str(self.dlg_prs.get('w_list', 500))
+                    , _('Width of action list (min 200, <=0-hide)'), str(self.dlg_prs.get('w_acts', 500))
+                    , _('Width of buttons (min 150)')              , str(self.dlg_prs.get('w_btn',  150))
+                    , _('Max run times (min 100)')                 , str(self.dlg_prs.get('times',  1000))
                     )
                 if custs is not None:
                     self.dlg_prs['h_list']  = max(450, int(custs[0]));  self.dlg_prs['h_acts'] = self.dlg_prs['h_list']
@@ -543,7 +556,7 @@ class Command:
                 continue #while
             
             if mcr_ind not in range(lmcrs):
-                app.msg_box('Select macro', app.MB_OK)
+                app.msg_box(_('Select macro'), app.MB_OK)
                 continue #while
             
             what    = ''
@@ -554,12 +567,12 @@ class Command:
                 continue #while
 
             elif ans_s=='rename': #Rename
-                mcr_nm      = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
+                mcr_nm      = app.dlg_input(_('New name for: {}').format(nmkys[mcr_ind])
                                            ,mcr['nm'])
                 if mcr_nm is None or mcr_nm==mcr['nm']:     continue #while
                 while mcr_nm in [mcr['nm'] for mcr in self.macros]:
-                    app.msg_box('Select other name.\nMacro names now are:\n\n'+'\n'.join(nmkys), app.MB_OK)
-                    mcr_nm  = app.dlg_input('New name for: {}'.format(nmkys[mcr_ind])
+                    app.msg_box(_('Select other name.\nMacro names now are:\n\n')+'\n'.join(nmkys), app.MB_OK)
+                    mcr_nm  = app.dlg_input(_('New name for: {}').format(nmkys[mcr_ind])
                                            ,mcr_nm)
                     if mcr_nm is None or mcr_nm==mcr['nm']: break #while mcr_nm
                 if mcr_nm is None or mcr_nm==mcr['nm']:     continue #while
@@ -568,7 +581,7 @@ class Command:
                 changed = True
                 
             elif ans_s=='delete': #Del
-                if app.msg_box( 'Delete macro\n    {}'.format(nmkys[mcr_ind])
+                if app.msg_box( _('Delete macro\n    {}').format(nmkys[mcr_ind])
                               , app.MB_YESNO)!=app.ID_YES:  continue #while
                 what    = 'delete:'+str(mcr['id'])
                 del self.macros[mcr_ind]
@@ -585,7 +598,7 @@ class Command:
                 and waits==0
                 and chngs=='0'
                 and endln=='0'):
-                    app.msg_box('Select stop condition', app.MB_OK)
+                    app.msg_box(_('Select stop condition'), app.MB_OK)
                     continue
                 self.run(mcr['id'], max(0, times), max(0, waits), chngs=='1', endln=='1')
                 return
@@ -612,7 +625,7 @@ class Command:
                                 py:string_module,string_method,string_param
         '''
         pass;                   LOG and log('mcr_record={}',mcr_record)
-        if ''==mcr_record:   return app.msg_status('Empty record')
+        if ''==mcr_record:   return app.msg_status(_('Empty record'))
         def_nm      = ''
         nms     = [mcr['nm'] for mcr in self.macros]
         for num in range(1,1000):
@@ -620,7 +633,7 @@ class Command:
             if def_nm not in nms:
                 break #for num
         while True:
-            mcr_nm      = app.dlg_input('Macro name. Tricks: "!NM" overwrite NM, "=NM" show NM in dialog', def_nm)
+            mcr_nm      = app.dlg_input(_('Macro name. Tricks: "!NM" overwrite NM, "=NM" show NM in dialog'), def_nm)
             if mcr_nm is None:   return
             mcr_nm      = mcr_nm.strip()
             if ''==mcr_nm:  continue #while
@@ -642,7 +655,7 @@ class Command:
             id4mcr      = self.macros[mcr_ind]['id']
         else:
             while mcr_nm in nms:
-                app.msg_box('Select other name.\nMacros names now:\n\n'+'\n'.join(nms), app.MB_OK)
+                app.msg_box(_('Select other name.\nMacros names now:\n\n')+'\n'.join(nms), app.MB_OK)
                 mcr_nm  = app.dlg_input('Macro name', mcr_nm)
                 if mcr_nm is None:   return
         
@@ -753,7 +766,7 @@ class Command:
         mcr     = self.mcr4id.get(str(mcr_id))
         if mcr is None:
             pass;               LOG and log('no id',)
-            return app.msg_status('No macros: {}'.format(mcr_id))
+            return app.msg_status(_('No macros: {}').format(mcr_id))
         cmds4eval   = ';'.join(mcr['evl'])
         pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         how_t       = 'wait'
@@ -776,21 +789,21 @@ class Command:
             and (rp_ctrl-1) == rp % rp_ctrl
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
                 WD_BTN  = 220
-                ans = app.dlg_custom(  'Playback macro', GAP*2+WD_BTN, GAP*7+4*25,  '\n'.join([]
+                ans = app.dlg_custom(  _('Playback macro'), GAP*2+WD_BTN, GAP*7+4*25,  '\n'.join([]
                     +[C1.join(['type=label'     ,POS_FMT(l=GAP,  t=GAP*1+25*0+at4lbl,   r=GAP+WD_BTN, b=0)
-                              ,'cap=Macro playback time is too long'
+                              ,'cap='+_('Macro playback time is too long')
                               ] # i=0
                      )]
                     +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*2+25*1,          r=GAP+WD_BTN, b=0)
-                              ,'cap=Wait &another {} sec'.format(tm_wait)
+                              ,'cap='+_('Wait &another {} sec').format(tm_wait)
                               ] # i=1
                      )]
                     +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*3+25*2,          r=GAP+WD_BTN, b=0)
-                              ,'cap=Continue &without control'
+                              ,'cap='+_('Continue &without control')
                               ] # i=2
                      )]
                     +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*6+25*3,          r=GAP+WD_BTN, b=0)
-                              ,'cap=&Cancel playback [ESC]'
+                              ,'cap='+_('&Cancel playback [ESC]')
                               ] # i=3
                      )]
                     ), 1)    # start focus

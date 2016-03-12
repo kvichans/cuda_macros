@@ -1,3 +1,6 @@
+1.1.0 (2016-03-12)
+added: i18n, ru-translation
+
 1.0.1 (2015-12-22)
 change: rename cmds with "Macros: ..."
 
