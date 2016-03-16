@@ -13,25 +13,23 @@ import  cudatext_cmd    as cmds
 import  cudax_lib       as apx
 from    cudax_lib   import log
 
+# I18N
+_       = lambda x: x
+this_dir= os.path.dirname(__file__)
+this_plg= os.path.basename(this_dir)
+lng     = app.app_proc(app.PROC_GET_LANG, '')
+lng_mo  = this_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, this_plg)
+if os.path.isfile(lng_mo):
+    t   = gettext.translation(this_plg, this_dir+'/lang', languages=[lng])
+    _   = t.gettext
+    t.install()
+
 pass;                           # Logging
 pass;                           LOG = (-2== 2)  # Do or dont logging.
 
 FROM_API_VERSION= '1.0.114'
 JSON_FORMAT_VER = '20151204'
 MACROS_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'macros.json'
-
-THIS    = 'cuda_macros'
-THIS_DIR= app.app_path(app.APP_DIR_EXE)+'/py/{0}/'.format(THIS)
-
-# Localization
-_       = lambda x: x
-lng     = app.app_proc(app.PROC_GET_LANG, '')[:2].lower()
-lng_mo  = THIS_DIR+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, THIS)
-if os.path.isfile(lng_mo):
-    t   = gettext.translation(THIS, THIS_DIR+'/lang', languages=[lng])
-    _   = t.gettext
-    t.install()
-
 
 C1      = chr(1)
 C2      = chr(2)
