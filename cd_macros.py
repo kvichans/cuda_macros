@@ -2,16 +2,17 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.0 2016-03-12'
+    '1.1.1 2016-03-21'
 ToDo: (see end of file)
 '''
 
 import  os, json, random, datetime, re, sys, gettext
-import  cudatext        as app
-from    cudatext    import ed
-import  cudatext_cmd    as cmds
-import  cudax_lib       as apx
-from    cudax_lib   import log
+import  cudatext            as app
+from    cudatext        import ed
+import  cudatext_cmd        as cmds
+import  cudax_lib           as apx
+from    cudax_lib       import log
+from    .cd_plug_lib    import *
 
 # I18N
 _       = lambda x: x
@@ -35,41 +36,6 @@ C1      = chr(1)
 C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
 GAP     = 5
-def top_plus_for_os(what_control, base_control='edit'):
-    ''' Addition for what_top to align text with base.
-        Params
-            what_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
-            base_control    'check'/'label'/'edit'/'button'/'combo'/'combo_ro'
-    '''
-    base_control    = apx.icase(base_control=='combo',      'edit'
-                               ,base_control=='combo_ro',   'button'
-                               ,base_control)
-    what_control    = apx.icase(what_control=='combo',      'edit'
-                               ,what_control=='combo_ro',   'button'
-                               ,what_control)
-    if what_control==base_control:
-        return 0
-    env = sys.platform
-    if base_control=='edit': 
-        if env=='win32':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   3
-                            ,what_control=='button', -1
-                            ,True,                    0)
-        if env=='linux':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   5
-                            ,what_control=='button',  1
-                            ,True,                    0)
-        if env=='darwin':
-            return apx.icase(what_control=='check',   1
-                            ,what_control=='label',   3
-                            ,what_control=='button',  0
-                            ,True,                    0)
-        return 0
-       #if base_control=='edit'
-    return top_plus_for_os(what_control, 'edit') - top_plus_for_os(base_control, 'edit')
-   #def top_plus_for_os
 
 at4chk  = top_plus_for_os('check')
 at4lbl  = top_plus_for_os('label')
@@ -164,70 +130,38 @@ class Command:
         crt,sels= '0', ['0'] * lmcrs
         while True:
             pass;               LOG and log('sels={}',sels)
-            ans = app.dlg_custom('Export macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+70,     b=0)
-                      ,'cap='+_('Export &to')
-                      ] # i=0
-             )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+70,           t=GAP,              r=GAP+WD_LST-35,b=0)
-                      ,'val={}'.format(exp_file)
-                      ] # i=1
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
-                      ,'cap='+_('&...')
-                      ] # i=2
-             )]
-            +[C1.join(['type=checklistbox' ,POS_FMT(l=GAP,             t=GAP*2+30,          r=GAP+WD_LST,   b=GAP+25+HT_LST)
-                      ,'items=' +'\t'.join([mcr['nm'] for mcr in self.macros])
-                      ,'val='   + crt+';'+','.join(sels)
-                      ] # i=3
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
-                      ,'cap='+_('Check &all')
-                      ] # i=4
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
-                      ,'cap='+_('U&ncheck all')
-                      ] # i=5
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=    WD_LST-60*2, t=GAP*3+25+HT_LST,  r=    WD_LST-60*1,   b=0)
-                      ,'cap='+_('&Export')
-                      ] # i=6
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+WD_LST-60*1, t=GAP*3+25+HT_LST,  r=GAP+WD_LST-60*0,   b=0)
-                      ,'cap='+_('Close')
-                      ] # i=7
-             )]
-            ), 3)    # start focus
-            pass;               LOG and log('ans={}',ans)
-            if ans is None:  break #while
-            (ans_i
-            ,vals)  = ans
-            ans_s   = apx.icase(False,''
-                       ,ans_i==2, 'file'
-                       ,ans_i==4, 'all'
-                       ,ans_i==5, 'no'
-                       ,ans_i==6, 'exp'
-                       ,ans_i==7, 'close'
-                       )
-            if ans_s=='close':  break #while
-            v_3     = vals.splitlines()[3]
-            crt,sels= v_3.split(';')
-            sels    = sels.strip(',').split(',')
+
+            cnts    = ([
+  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=70            ,cap=_('Export &to')                    )
+ ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+70          ,r=GAP+WD_LST-35 ,en='0'                                 )
+ ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                          )
+ ,dict(cid='mcrs'   ,tp='ch-lbx',t=35   ,h=HT_LST   ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in self.macros])
+ ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=80            ,cap=_('Check &all')                    )
+ ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+80        ,w=80            ,cap=_('U&ncheck all')                  )
+ ,dict(cid='expo'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=    WD_LST-70*2 ,w=70            ,cap=_('&Export')       ,props='1'      )   # default
+ ,dict(cid='-'      ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP+WD_LST-70*1 ,w=70            ,cap=_('Close')                         )
+                    ])
+            vals    = dict( file=exp_file
+                           ,mcrs=(crt, sels)
+                        )
+            btn,    \
+            vals    = dlg_wrapper(_('Export macros')   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2-GAP, cnts, vals, focus_cid='mrcs')
+            if btn is None or btn=='-': return
+            crt,sels= vals['mcrs']
             pass;               LOG and log('sels={}',sels)
             if False:pass
-            elif ans_s=='file':
+            elif btn=='brow': #ans_s=='file':
                 new_exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
                 if new_exp_file is not None:
                     exp_file    = new_exp_file
                     exp_file    = exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
-            elif ans_s=='all':
+            elif btn=='ch-a': #ans_s=='all':
                 sels    = ['1'] * lmcrs
-            elif ans_s=='no':
+            elif btn=='ch-n': #ans_s=='no':
                 sels    = ['0'] * lmcrs
-            elif ans_s=='exp':
+            elif btn=='expo': #ans_s=='exp':
                 if '1' not in sels:
-                    app.msg_box('Select some names', app.MB_OK)
+                    app.msg_box(_('Select some names'), app.MB_OK)
                     continue
                 self.export_to_file(exp_file, [mcr for (ind, mcr) in enumerate(self.macros) if sels[ind]=='1'])
                 return
@@ -280,64 +214,32 @@ class Command:
         if imp_file is None:    return
         lmcrs   = len(mcrs)
         
-        (WD_LST
-        ,HT_LST)= (500
+        WD_LST, \
+        HT_LST  = (500
                   ,500)
         crt,sels= '0', ['1'] * lmcrs
         while True:
-            ans = app.dlg_custom('Import macros'   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2, '\n'.join([]
-            +[C1.join(['type=label'         ,POS_FMT(l=GAP,             t=GAP+at4lbl,       r=GAP+85,     b=0)
-                      ,'cap='+_('Import &from')
-                      ] # i=0
-             )]
-            +[C1.join(['type=edit'         ,POS_FMT(l=GAP+85,           t=GAP,              r=GAP+WD_LST-35,b=0)
-                      ,'val={}'.format(imp_file)
-                      ] # i=1
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+HT_LST-35,   t=GAP+at4btn,       r=GAP+WD_LST,   b=0)
-                      ,'cap='+_('&...')
-                      ] # i=2
-             )]
-            +[C1.join(['type=checklistbox' ,POS_FMT(l=GAP,             t=GAP*2+30,          r=GAP+WD_LST,   b=GAP+25+HT_LST)
-                      ,'items=' +'\t'.join([mcr['nm'] for mcr in mcrs])
-                      ,'val='   + crt+';'+','.join(sels)
-                      ] # i=3
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*1,           t=GAP*3+25+HT_LST,  r=GAP*1+80*1,   b=0)
-                      ,'cap='+_('Check &all')
-                      ] # i=4
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP*2+80,        t=GAP*3+25+HT_LST,  r=GAP*2+80*2,   b=0)
-                      ,'cap='+_('U&ncheck all')
-                      ] # i=5
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=    WD_LST-60*2, t=GAP*3+25+HT_LST,  r=    WD_LST-60*1,   b=0)
-                      ,'cap='+_('&Import')
-                      ] # i=6
-             )]
-            +[C1.join(['type=button'        ,POS_FMT(l=GAP+WD_LST-60*1, t=GAP*3+25+HT_LST,  r=GAP+WD_LST-60*0,   b=0)
-                      ,'cap='+_('Close')
-                      ] # i=7
-             )]
-            ), 3)    # start focus
-            pass;               LOG and log('ans={}',ans)
-            if ans is None:  break #while
-            (ans_i
-            ,vals)  = ans
-            ans_s   = apx.icase(False,''
-                       ,ans_i==2, 'file'
-                       ,ans_i==4, 'all'
-                       ,ans_i==5, 'no'
-                       ,ans_i==6, 'imp'
-                       ,ans_i==7, 'close'
-                       )
-            if ans_s=='close':  break #while
-            v_3     = vals.splitlines()[3]
-            crt,sels= v_3.split(';')
-            sels    = sels.strip(',').split(',')
+
+            cnts    = ([
+  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=85            ,cap=_('Import &from')              )
+ ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+85          ,r=GAP+WD_LST-35 ,en='0'                             )
+ ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                      )
+ ,dict(cid='mcrs'   ,tp='ch-lbx',t=35  ,h=HT_LST    ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in mcrs]  )
+ ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=80            ,cap=_('Check &all')                )
+ ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+80        ,w=80            ,cap=_('U&ncheck all')              )
+ ,dict(cid='impo'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=    WD_LST-70*2 ,w=70            ,cap=_('&Import')       ,props='1'  )   # default
+ ,dict(cid='-'      ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP+WD_LST-70*1 ,w=70            ,cap=_('Close')                     )
+                    ])
+            vals    = dict( file=imp_file
+                           ,mcrs=(crt, sels)
+                        )
+            btn,    \
+            vals    = dlg_wrapper(_('Import macros'), GAP+WD_LST+GAP, GAP*4+HT_LST+25*2, cnts, vals, focus_cid='mrcs')
+            if btn is None or btn=='-': return
+            crt,sels= vals['mcrs']
             pass;               LOG and log('sels={}',sels)
             if False:pass
-            elif ans_s=='file':
+            elif btn=='brow': #ans_s=='file':
                 (new_imp_file
                 ,new_mcrs)  = self.dlg_import_choose_mcrs()
                 if new_imp_file is None:    continue #while
@@ -345,11 +247,11 @@ class Command:
                 mcrs        = new_mcrs
                 lmcrs       = len(mcrs)
                 crt,sels    = '0', ['1'] * lmcrs
-            elif ans_s=='all':
+            elif btn=='ch-a': #ans_s=='all':
                 sels    = ['1'] * lmcrs
-            elif ans_s=='no':
+            elif btn=='ch-n': #ans_s=='no':
                 sels    = ['0'] * lmcrs
-            elif ans_s=='imp':
+            elif btn=='impo': #ans_s=='imp':
                 if '1' not in sels:
                     app.msg_box(_('Select some names'), app.MB_OK)
                     continue
@@ -379,15 +281,17 @@ class Command:
         chngs   = '0'
         endln   = '0'
         while True:
-            (WD_LST
-            ,HT_LST)= (self.dlg_prs.get('w_list', 300)
+            WD_LST, \
+            HT_LST  = (self.dlg_prs.get('w_list', 300)
                       ,self.dlg_prs.get('h_list', 500))
-            (WD_ACTS
-            ,HT_ACTS)=(self.dlg_prs.get('w_acts', 300)
+            WD_ACTS,\
+            HT_ACTS = (self.dlg_prs.get('w_acts', 300)
                       ,self.dlg_prs.get('h_acts', 500))
-            (WD_BTN
-            ,HT_BTN)= (self.dlg_prs.get('w_btn', 150), 24)
+            WD_BTN, \
+            HT_BTN  = (self.dlg_prs.get('w_btn', 150), 24)
+            WD_BTN_3= int(WD_BTN/3)
             l_btn   = GAP+WD_LST+GAP
+            l_acts  = GAP+WD_LST+GAP+WD_BTN+GAP
             
             vw_acts = (WD_ACTS>0)
             WD_ACTS = max(0, WD_ACTS)
@@ -409,134 +313,62 @@ class Command:
                 mcr     = self.macros[mcr_ind]
                 mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
 
-            ans = app.dlg_custom(_('Macros')   ,GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, '\n'.join([]
-            +[C1.join(['type=listbox'   ,POS_FMT(l=GAP,    t=GAP,           r=GAP+WD_LST,   b=GAP+HT_LST)
-                      ,'items=' +'\t'.join(nmkys)
-                      ,'val='   +str(mcr_ind)  # start sel
-                      ,'en='    +str(0 if rec_on else 1)        # enabled
-                      ] # i=0
-             )]
-            +([C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*1+HT_BTN*0,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('&View actions')
-                      ,'props=' +str(0 if    rec_on or 0==lmcrs else 1)    # default
-                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)    # enabled
-                      ] # i=1
-             )] if vw_acts else [])
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*2+HT_BTN*1,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('Hot&keys...')
-                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
-                      ] # i=2 if vw_acts else i=1
-             )]
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*3+HT_BTN*2,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('Re&name...')
-                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
-                      ] # i=3 if vw_acts else i=2
-             )]
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*4+HT_BTN*3,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('&Delete...')
-                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
-                      ] # i=4 if vw_acts else i=3
-             )]
-
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,                   t=GAP*6+HT_BTN*5,       r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('&Run!')
-                      ,'props=' +str(1 if not vw_acts and not rec_on else 0)     # default
-                      ,'en='    +str(0 if    rec_on or 0==lmcrs else 1)     # enabled
-                      ] # i=5 if vw_acts else i=4
-             )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*7+HT_BTN*6+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
-                      ,'cap='+_('&Times')
-                      ] # i=6 if vw_acts else i=5
-             )]
-            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*7+HT_BTN*6,       r=l_btn+WD_BTN, b=0)
-                      ,'val='   +str(times)
-                      ,'props=0,{},1'.format(self.dlg_prs.get('times',  1000))
-                      ,'en='    +str(0 if    rec_on else 1)     # enabled
-                      ] # i=7 if vw_acts else i=6
-             )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn,                   t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+int(WD_BTN/3),b=0)
-                      ,'cap='+_('&Wait')
-                      ] # i=8 if vw_acts else i=7
-             )]
-            +[C1.join(['type=spinedit'  ,POS_FMT(l=l_btn+int(WD_BTN/3)+GAP, t=GAP*8+HT_BTN*7,       r=l_btn+WD_BTN-40, b=0)
-                      ,'val='   +str(waits)
-                      ,'props=1,3600,1'
-                      ,'en='    +str(0 if    rec_on else 1)     # enabled
-                      ] # i=9 if vw_acts else i=8
-             )]
-            +[C1.join(['type=label'     ,POS_FMT(l=l_btn+WD_BTN-40+GAP,     t=GAP*8+HT_BTN*7+at4lbl,r=l_btn+WD_BTN,b=0)
-                      ,'cap='+_('sec')
-                      ] # i=10 if vw_acts else i=9
-             )]
-            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*9+HT_BTN*8,       r=l_btn+WD_BTN,b=0)
-                      ,'cap='+_('While text c&hanges')
-                      ,'val='   +chngs
-                      ] # i=11 if vw_acts else i=10
-             )]
-            +[C1.join(['type=check'     ,POS_FMT(l=l_btn,                   t=GAP*10+HT_BTN*9,      r=l_btn+WD_BTN,b=0)
-                      ,'cap='+_('Until c&aret on last line')
-                      ,'val='   +endln
-                      ] # i=12 if vw_acts else i=11
-             )]
-
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*12+HT_BTN*11,    r=l_btn+WD_BTN, b=0)
-                      ,'cap={}'.format(_('&Stop record') if rec_on else _('&Start record'))
-                      ,'props=' +str(1 if    rec_on or 0==lmcrs else 0)     # default
-                      ] # i=13 if vw_acts else i=12
-             )]
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP*13+HT_BTN*12,    r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('Canc&el record')
-                      ,'en='    +str(1 if    rec_on else 0)     # enabled
-                      ] # i=14 if vw_acts else i=13
-             )]
-
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=    HT_LST-HT_BTN*2, r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('Ad&just...')
-                      ,'en='    +str(0 if    rec_on else 1)     # enabled
-                      ] # i=15 if vw_acts else i=14
-             )]
-            +[C1.join(['type=button'    ,POS_FMT(l=l_btn,  t=GAP+HT_LST-HT_BTN*1, r=l_btn+WD_BTN, b=0)
-                      ,'cap='+_('Close')
-                      ] # i=16 if vw_acts else i=15
-             )]
-            +([C1.join(['type=memo'      ,POS_FMT(l=GAP+WD_LST+GAP+WD_BTN+GAP,   t=GAP,  r=GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS, b=GAP+HT_ACTS)
-                      ,'val='+mcr_acts
-                      ,'props=1,1,1'    # ro,mono,border
-                      ] # i=17
-             )] if vw_acts else [])
-            ), apx.icase(    vw_acts and not rec_on, 0  # View
-                        ,not vw_acts and not rec_on, 0  # View
-                        ,    vw_acts and     rec_on, 11
-                        ,not vw_acts and     rec_on, 10
-                        ))    # start focus
-            pass;               LOG and log('ans={}',ans)
-            if ans is None:  break #while
-            (ans_i
-            ,vals)  = ans
-            ans_s   = apx.icase(False,''
-                       ,vw_acts and ans_i==1, 'view'
-                       ,vw_acts and ans_i==2, 'hotkeys' ,not vw_acts and ans_i==1, 'hotkeys'
-                       ,vw_acts and ans_i==3, 'rename'  ,not vw_acts and ans_i==2, 'rename' 
-                       ,vw_acts and ans_i==4, 'delete'  ,not vw_acts and ans_i==3, 'delete' 
-                       ,vw_acts and ans_i==5, 'run'     ,not vw_acts and ans_i==4, 'run'    
-                       ,vw_acts and ans_i==12,'rec'     ,not vw_acts and ans_i==7, 'rec'    
-                       ,vw_acts and ans_i==14,'cancel'  ,not vw_acts and ans_i==13,'cancel' 
-                       ,vw_acts and ans_i==15,'custom'  ,not vw_acts and ans_i==14,'custom' 
-                       ,vw_acts and ans_i==16,'close'   ,not vw_acts and ans_i==15,'close'  
-                       ,'?')
-            mcr_ind = int(vals.splitlines()[0])
-            times   = int(vals.splitlines()[ 7 if vw_acts else  6])
-            waits   = int(vals.splitlines()[ 9 if vw_acts else  8])
-            chngs   =     vals.splitlines()[11 if vw_acts else 10]
-            endln   =     vals.splitlines()[12 if vw_acts else 11]
+            def_stst    = '1' if                     rec_on or 0==lmcrs else '0'
+            n_edable    = '0' if                     rec_on or 0==lmcrs else '1'
+            n_vwable    = '1' if not vw_acts and not rec_on else '0'
+            only_rec_off= '0' if                     rec_on else '1'
+            only_rec_on = '1' if                     rec_on else '0'
+            tims_props  = '0,{},1'.format(self.dlg_prs.get('times',  1000))
+            stst_cap    = _('&Stop record') if       rec_on else _('&Start record')
+            cnts        = ([]
+ +[dict(cid='mrcs'   ,tp='lbx'  ,t=GAP  ,h=HT_LST       ,l=GAP                  ,w=WD_LST   ,items=nmkys                            ,en=only_rec_off    )]
+ +(                                                                                                     
+  [dict(cid='view'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('&View actions') ,props=n_edable,en=n_edable         )]  # default
+  if vw_acts else [])                                                                                     
+ +[dict(cid='keys'   ,tp='bt'   ,t=GAP* 2+HT_BTN* 1     ,l=l_btn                ,w=WD_BTN   ,cap=_('Hot&keys...')                   ,en=n_edable        )]
+ +[dict(cid='renm'   ,tp='bt'   ,t=GAP* 3+HT_BTN* 2     ,l=l_btn                ,w=WD_BTN   ,cap=_('Re&name...')                    ,en=n_edable        )]
+ +[dict(cid='del'    ,tp='bt'   ,t=GAP* 4+HT_BTN* 3     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Delete...')                    ,en=n_edable        )]
+ +[dict(cid='run'    ,tp='bt'   ,t=GAP* 6+HT_BTN* 5     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Run!')         ,props=n_vwable ,en=n_edable        )]  # default
+ +[dict(              tp='lb'   ,tid='times'            ,l=l_btn                ,w=WD_BTN_3 ,cap=_('&Times')                                            )]
+ +[dict(cid='times'  ,tp='sp-ed',t=GAP* 7+HT_BTN* 6     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN                     ,props=tims_props,en=only_rec_off   )]  # min,max,step
+ +[dict(              tp='lb'   ,tid='waits'            ,l=l_btn                ,w=WD_BTN_3 ,cap=_('&Wait')                                             )]
+ +[dict(cid='waits'  ,tp='sp-ed',t=GAP* 8+HT_BTN* 7     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN-40                  ,props='1,3600,1',en=only_rec_off   )]  # min,max,step
+ +[dict(              tp='lb'   ,tid='waits'            ,l=l_btn+WD_BTN-40+GAP  ,w=WD_BTN   ,cap=_('sec')                                               )]
+ +[dict(cid='chngs'  ,tp='ch'   ,t=GAP* 9+HT_BTN* 8     ,l=l_btn                ,w=WD_BTN   ,cap=_('While text c&hanges')                               )]
+ +[dict(cid='endln'  ,tp='ch'   ,t=GAP*10+HT_BTN* 9     ,l=l_btn                ,w=WD_BTN   ,cap=_('Until c&aret on last line')                         )]
+ +[dict(cid='stst'   ,tp='bt'   ,t=GAP*12+HT_BTN*11     ,l=l_btn                ,w=WD_BTN   ,cap=stst_cap           ,props=def_stst                     )]
+ +[dict(cid='canc'   ,tp='bt'   ,t=GAP*13+HT_BTN*12     ,l=l_btn                ,w=WD_BTN   ,cap=_('Canc&el record')                ,en=only_rec_on     )]
+ +[dict(cid='adju'   ,tp='bt'   ,t=    HT_LST-HT_BTN*2  ,l=l_btn                ,w=WD_BTN   ,cap=_('Ad&just...')                    ,en=only_rec_off    )]
+ +[dict(cid='-'      ,tp='bt'   ,t=GAP+HT_LST-HT_BTN*1  ,l=l_btn                ,w=WD_BTN   ,cap=_('Close')                                             )]
+ +(
+  [dict(cid='acts'   ,tp='me'   ,t=GAP  ,h=HT_ACTS      ,l=l_acts               ,w=WD_ACTS                          ,props='1,1,1'                      )]  # ro,mono,border
+  if vw_acts else [])
+                    )
+            vals    = dict( mrcs=mcr_ind
+                           ,times=times
+                           ,waits=waits
+                           ,chngs=chngs
+                           ,endln=endln
+                        )
+            if vw_acts: vals.update(
+                      dict( acts=mcr_acts
+                        ))
+            btn,    \
+            vals    = dlg_wrapper(_('Macros'), GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, cnts, vals, focus_cid='mrcs')
+            if btn is None or btn=='-': return
+            mcr_ind = vals['mrcs']
+            times   = vals['times']
+            waits   = vals['waits']
+            chngs   = vals['chngs']
+            endln   = vals['endln']
             pass;               LOG and log('mcr_ind,times,waits,chngs,endln={}',(mcr_ind,times,waits,chngs,endln))
 
             if 0!=lmcrs and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
                 self.last_mcr_id = mcr['id']
             
-            if ans_s=='close':  break #while
-            if ans_s=='custom': #Custom
+#           if ans_s=='close':  break #while
+            if btn=='adju': #ans_s=='custom': #Custom
                 custs   = app.dlg_input_ex(5, _('Custom dialog Macros')
                     , _('Height of macro list (min 450)')          , str(self.dlg_prs.get('h_list', 400))
                     , _('Width of macro list (min 200)')           , str(self.dlg_prs.get('w_list', 500))
@@ -561,10 +393,10 @@ class Command:
             changed = False
             if False:pass
                 
-            elif ans_s=='view': #View
+            elif btn=='view': #ans_s=='view': #View
                 continue #while
 
-            elif ans_s=='rename': #Rename
+            elif btn=='renm': #ans_s=='rename': #Rename
                 mcr_nm      = app.dlg_input(_('New name for: {}').format(nmkys[mcr_ind])
                                            ,mcr['nm'])
                 if mcr_nm is None or mcr_nm==mcr['nm']:     continue #while
@@ -578,7 +410,7 @@ class Command:
                 mcr['nm']   = mcr_nm
                 changed = True
                 
-            elif ans_s=='delete': #Del
+            elif btn=='del': #ans_s=='delete': #Del
                 if app.msg_box( _('Delete macro\n    {}').format(nmkys[mcr_ind])
                               , app.MB_YESNO)!=app.ID_YES:  continue #while
                 what    = 'delete:'+str(mcr['id'])
@@ -586,12 +418,12 @@ class Command:
                 mcr_ind = min(mcr_ind, len(self.macros)-1)
                 changed = True
                 
-            elif ans_s=='hotkeys': #Hotkeys
+            elif btn=='keys': #ans_s=='hotkeys': #Hotkeys
                 app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
                 changed = True
 
-            elif ans_s=='run': #Run
+            elif btn=='run': #ans_s=='run': #Run
                 if (times==0 
                 and waits==0
                 and chngs=='0'
@@ -601,12 +433,15 @@ class Command:
                 self.run(mcr['id'], max(0, times), max(0, waits), chngs=='1', endln=='1')
                 return
 
-            elif ans_s=='rec'    and not rec_on: #Start record
+            elif btn=='stst'     and not rec_on: #Start record
+#           elif ans_s=='rec'    and not rec_on: #Start record
                 return ed.cmd(cmds.cmd_MacroStart)
-            elif ans_s=='rec'    and     rec_on: #Stop record
+            elif btn=='stst'     and     rec_on: #Stop record
+#           elif ans_s=='rec'    and     rec_on: #Stop record
                 self.need_dlg = True
                 return ed.cmd(cmds.cmd_MacroStop)       # Return for clear rec-mode in StatusBar, will recall from on_macro
-            elif ans_s=='cancel' and     rec_on: #Cancel record
+            elif btn=='canc'     and     rec_on: #Cancel record
+#           elif ans_s=='cancel' and     rec_on: #Cancel record
                 return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode in StatusBar
                 
             if changed:
@@ -786,37 +621,21 @@ class Command:
             if  (how_t=='wait'
             and (rp_ctrl-1) == rp % rp_ctrl
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
-                WD_BTN  = 220
-                ans = app.dlg_custom(  _('Playback macro'), GAP*2+WD_BTN, GAP*7+4*25,  '\n'.join([]
-                    +[C1.join(['type=label'     ,POS_FMT(l=GAP,  t=GAP*1+25*0+at4lbl,   r=GAP+WD_BTN, b=0)
-                              ,'cap='+_('Macro playback time is too long')
-                              ] # i=0
-                     )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*2+25*1,          r=GAP+WD_BTN, b=0)
-                              ,'cap='+_('Wait &another {} sec').format(tm_wait)
-                              ] # i=1
-                     )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*3+25*2,          r=GAP+WD_BTN, b=0)
-                              ,'cap='+_('Continue &without control')
-                              ] # i=2
-                     )]
-                    +[C1.join(['type=button'    ,POS_FMT(l=GAP,  t=GAP*6+25*3,          r=GAP+WD_BTN, b=0)
-                              ,'cap='+_('&Cancel playback [ESC]')
-                              ] # i=3
-                     )]
-                    ), 1)    # start focus
-                pass;          #LOG and log('ans={}',ans)
-                ans     =('break'   if ans is None  else
-                          'break'   if ans[0]==3    else
-                          'wait'    if ans[0]==1    else
-                          'cont'    if ans[0]==2    else 'break')
-                if ans=='cont':
-                    how_t   = 'work'
-                if ans=='wait':
-                    start_t = datetime.datetime.now()
-                if ans=='break':
+                cnts    = ([
+  dict(              tp='lb'    ,t=GAP          ,l=GAP  ,w=400   ,cap=_('Macro "{}" playback time is too long'.format(mcr['nm'])))
+ ,dict(cid='wait'   ,tp='bt'    ,t=GAP*2+25*1   ,l=GAP  ,w=400   ,cap=_('Wait &another {} sec').format(tm_wait)  ,props='1'      )   # default
+ ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
+ ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=300   ,cap=_('&Cancel playback [ESC]')                                )
+                        ])
+                btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, vals)
+                if btn is None or btn=='stop':
                     pass;       LOG and log('break by user',)
+                    app.msg_status(_('Cancel playback macro: {}'.format(mcr['nm'])))
                     break   #for rp
+                if btn=='cont': #ans=='cont':
+                    how_t   = 'work'
+                if btn=='wait': #ans=='wait':
+                    start_t = datetime.datetime.now()
            #for rp
         self.last_mcr_id = mcr_id
        #def run
@@ -882,6 +701,20 @@ class Command:
 
    #class Command
 
+#if __name__ == '__main__' :     # Tests
+def _testing():
+    tm_wait = 100
+    mcr     = {}
+    mcr['nm']='Smth'
+    cnts    = ([
+  dict(              tp='lb'    ,t=GAP          ,l=GAP  ,w=400   ,cap=_('Macro "{}" playback time is too long'.format(mcr['nm'])))
+ ,dict(cid='wait'   ,tp='bt'    ,t=GAP*2+25*1   ,l=GAP  ,w=400   ,cap=_('Wait &another {} sec').format(tm_wait)  ,props='1'      )   # default
+ ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
+ ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=400   ,cap=_('&Cancel playback [ESC]')                                )
+                        ])
+    btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts)
+#_testing()
+
 '''
 ToDo
 [+][kv-kv][04dec15] Set stable part for run, use free part for name
@@ -893,5 +726,3 @@ ToDo
 [+][at-kv][18dec15] Check api-ver
 [?][kv-kv][11jan16] Use PROC_SET_ESCAPE
 '''
-
-
