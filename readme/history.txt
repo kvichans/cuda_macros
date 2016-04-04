@@ -1,3 +1,6 @@
+1.1.2 (2016-04-04)
+* autofilled submenu
+
 1.1.1 (2016-03-21)
 * inner changes (dlg_wrapper)
 

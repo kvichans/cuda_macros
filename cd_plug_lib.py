@@ -2,16 +2,67 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.1 2016-03-20'
+    '1.0.2 2016-03-22'
+Content
+    get_translation     i18n
+    dlg_wrapper         Wrapper for dlg_custom: pack/unpack values, h-align controls
 ToDo: (see end of file)
 '''
 
-import  sys
-import  cudatext            as app
-from    cudatext        import ed
-import  cudatext_cmd        as cmds
-import  cudax_lib           as apx
-from    cudax_lib       import log
+import  sys, os, gettext
+import  cudatext        as app
+import  cudax_lib       as apx
+from    cudax_lib   import log
+
+REDUCTS = {'lb'     :'label'
+        ,  'ln-lb'  :'linklabel'
+        ,  'ed'     :'edit'
+        ,  'sp-ed'  :'spinedit'
+        ,  'me'     :'memo'
+        ,  'bt'     :'button'
+        ,  'rd'     :'radio'
+        ,  'ch'     :'check'
+        ,  'ch-bt'  :'checkbutton'
+        ,  'ch-gp'  :'checkgroup'
+        ,  'rd-gp'  :'radiogroup'
+        ,  'cb'     :'combo'
+        ,  'cb-ro'  :'combo_ro'
+        ,  'lbx'    :'listbox'
+        ,  'ch-lbx' :'checklistbox'
+        ,  'lvw'     :'listview'
+        ,  'ch-lvw' :'checklistview'
+        }
+
+def get_translation(plug_file):
+    ''' Part of i18n.
+        Full i18n-cycle:
+        1. All GUI-string in code are used in form 
+            _('')
+        2. These string are extracted from code to 
+            lang/messages.pot
+           with run
+            python.exe <pypython-root>\Tools\i18n\pygettext.py -p lang <plugin>.py
+        3. Poedit (or same program) create 
+            <module>\lang\ru_RU\LC_MESSAGES\<module>.po
+           from (cmd "Update from POT") 
+            lang/messages.pot
+           It allows to translate all "strings"
+           It creates (cmd "Save")
+            <module>\lang\ru_RU\LC_MESSAGES\<module>.mo
+        4. get_translation uses the file to realize
+            _('')
+    '''
+    plug_dir= os.path.dirname(plug_file)
+    plug_mod= os.path.basename(plug_dir)
+    lng     = app.app_proc(app.PROC_GET_LANG, '')
+    lng_mo  = plug_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
+    if os.path.isfile(lng_mo):
+        t   = gettext.translation(plug_mod, plug_dir+'/lang', languages=[lng])
+        _   = t.gettext
+        t.install()
+    else:
+        _   =  lambda x: x
+    return _
 
 def f(s, *args, **kwargs):return s.format(*args, **kwargs)
 def top_plus_for_os(what_control, base_control='edit'):
@@ -50,33 +101,15 @@ def top_plus_for_os(what_control, base_control='edit'):
     return top_plus_for_os(what_control, 'edit') - top_plus_for_os(base_control, 'edit')
    #def top_plus_for_os
 
-REDUCTS = {'lb'     :'label'
-        ,  'ln-lb'  :'linklabel'
-        ,  'ed'     :'edit'
-        ,  'sp-ed'  :'spinedit'
-        ,  'me'     :'memo'
-        ,  'bt'     :'button'
-        ,  'rd'     :'radio'
-        ,  'ch'     :'check'
-        ,  'ch-bt'  :'checkbutton'
-        ,  'ch-gp'  :'checkgroup'
-        ,  'rd-gp'  :'radiogroup'
-        ,  'cb'     :'combo'
-        ,  'cb-ro'  :'combo_ro'
-        ,  'lbx'    :'listbox'
-        ,  'ch-lbx' :'checklistbox'
-        ,  'lvw'     :'listview'
-        ,  'ch-lvw' :'checklistview'
-        }
 def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
     """ Wrapper for dlg_custom. 
         Params
-            title, w, h Title, width, Height 
-            cnts            List of stable control properties
+            title, w, h     Title, Width, Height 
+            cnts            List of static control properties
                                 [{cid:'*', tp:'*', t:1,l:1,w:1,r:1,b;1,h:1, cap:'*', hint:'*', en:'0', props:'*', items:[*], valign_to:'cid'}]
-                                cid         (opt)(str) Control id. Need only for buttons and conrols with value (or for tid)
+                                cid         (opt)(str) C(ontrol)id. Need only for buttons and conrols with value (and for tid)
                                 tp               (str) Control types from wiki or short names
-                                t           (opt)(int) Top. t_as>>>t
+                                t           (opt)(int) Top
                                 tid         (opt)(str) Ref to other control cid for horz-align text in both controls
                                 l                (int) Left
                                 r,b,w,h     (opt)(int) Position. w>>>r=l+w, h>>>b=t+h, b can be omitted
@@ -89,7 +122,7 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
                                                             (head, body) For listview, checklistview 
                                                                 head    [(cap,width),(cap,width),]
                                                                 body    [[r0c0,r0c1,],[r1c0,r1c1,],[r2c0,r2c1,],]
-            in_vals         Dict of start values for some controles 
+            in_vals         Dict of start values for some controls 
                                 {'cid':val}
             focus           (opt) Control cid for  start focus
         Return
@@ -115,20 +148,20 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
             lvw     listview
             ch-lvw  checklistview
         Example.
-def ask_number(ask, def_val):
-    cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)
-         ,dict(cid='v',tp='ed',t=3    ,l=73,w=70)
-         ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap='OK',props='1')
-         ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
-    vals={'v':def_val}
-    while True:
-        btn,vals=dlg_wrapper('Example',146,75,cnts,vals,'v')
-        if btn is None or btn=='-': return def_val
-        if not re.match(r'\d+$', vals['v']): continue
-        return vals['v']
+            def ask_number(ask, def_val):
+                cnts=[dict(        tp='lb',tid='v',l=3 ,w=70,cap=ask)
+                     ,dict(cid='v',tp='ed',t=3    ,l=73,w=70)
+                     ,dict(cid='!',tp='bt',t=45   ,l=3 ,w=70,cap='OK',props='1')
+                     ,dict(cid='-',tp='bt',t=45   ,l=73,w=70,cap='Cancel')]
+                vals={'v':def_val}
+                while True:
+                    btn,vals=dlg_wrapper('Example',146,75,cnts,vals,'v')
+                    if btn is None or btn=='-': return def_val
+                    if not re.match(r'\d+$', vals['v']): continue
+                    return vals['v']
     """
     pass;                  #LOG and log('in_vals={}',pformat(in_vals, width=120))
-    cid2i   = {cnt['cid']:i for i,cnt in enumerate(cnts) if 'cid' in cnt}
+    cid2i       = {cnt['cid']:i for i,cnt in enumerate(cnts) if 'cid' in cnt}
     if True:
         # Checks
         no_tids = {cnt['tid']   for   cnt in    cnts    if 'tid' in cnt and  cnt['tid'] not in cid2i}
@@ -146,7 +179,7 @@ def ask_number(ask, def_val):
         for k in ['cap', 'hint', 'props']:
             if k in cnt:
                 lst += [k+'='+str(cnt[k])]
-        # Props need preparation
+        # Props with preparation
         # Position:
         #   t[op] or tid, l[eft] required
         #   w[idth]  >>> r[ight ]=l+w
@@ -158,13 +191,13 @@ def ask_number(ask, def_val):
             # cid for horz-align text
             bs_cnt  = cnts[cid2i[cnt['tid']]]
             bs_tp   = bs_cnt['tp']
-            t   = bs_cnt['t'] + top_plus_for_os(tp, REDUCTS.get(bs_tp, bs_tp))
+            t       = bs_cnt['t'] + top_plus_for_os(tp, REDUCTS.get(bs_tp, bs_tp))
         r       = cnt.get('r', l+cnt.get('w', 0)) 
         b       = cnt.get('b', t+cnt.get('h', 0)) 
         lst    += ['pos={l},{t},{r},{b}'.format(l=l,t=t,r=r,b=b)]
         if 'en' in cnt:
-            val = cnt['en']
-            lst+= ['en='+('1' if val in [True, '1'] else '0')]
+            val     = cnt['en']
+            lst    += ['en='+('1' if val in [True, '1'] else '0')]
 
         if 'items' in cnt:
             items   = cnt['items']
@@ -259,5 +292,3 @@ if __name__ == '__main__' :     # Tests
             if not re.match(r'\d+$', vals['v']): continue
             return vals['v']
     ask_number('ask_____________', '____smth')
-    
-

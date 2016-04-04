@@ -2,11 +2,11 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.1 2016-03-21'
+    '1.1.2 2016-04-04'
 ToDo: (see end of file)
 '''
 
-import  os, json, random, datetime, re, sys, gettext
+import  os, json, random, datetime, re
 import  cudatext            as app
 from    cudatext        import ed
 import  cudatext_cmd        as cmds
@@ -15,15 +15,7 @@ from    cudax_lib       import log
 from    .cd_plug_lib    import *
 
 # I18N
-_       = lambda x: x
-this_dir= os.path.dirname(__file__)
-this_plg= os.path.basename(this_dir)
-lng     = app.app_proc(app.PROC_GET_LANG, '')
-lng_mo  = this_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, this_plg)
-if os.path.isfile(lng_mo):
-    t   = gettext.translation(this_plg, this_dir+'/lang', languages=[lng])
-    _   = t.gettext
-    t.install()
+_       = get_translation(__file__)
 
 pass;                           # Logging
 pass;                           LOG = (-2== 2)  # Do or dont logging.
@@ -78,26 +70,31 @@ class Command:
         self._do_acts(acts='|reg|menu|')
        #def on_start
         
-    def _adapt_menu(self):
+    def adapt_menu(self,id_menu=0):
         ''' Add or change top-level menu Macros
+            Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
-        id_menu     = 0
-        if 'macros_id_menu' in dir(ed):                 ##?? dirty hack!
-            id_menu = ed.macros_id_menu                 ##?? dirty hack!
-            # Clear old
-            app.app_proc(app.PROC_MENU_CLEAR, id_menu)
+        pass;                   LOG and log('id_menu={}',id_menu)
+        PLUG_HINT   = '_'+'cuda_macros:adapt_menu'  # "_" is sign for ConfigMenu. ":" is subst for "," to avoid call "import ..."
+        if id_menu!=0:
+            # Use this id
+            app.app_proc(app.PROC_MENU_CLEAR, str(id_menu))
         else:
-#       if 0==self.id_menu:
-            # Create
-            top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top').splitlines()
-            pass;              #LOG and log('top_nms={}',top_nms)
-            if app.app_api_version() >= '1.0.131':
-                plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]     ##?? 
-            else: # old, pre i18n
-                plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
-            id_menu  = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', 0, '&Macros', plg_ind))
-            ed.macros_id_menu = id_menu                 ##?? dirty hack!
-
+            top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top')
+            if PLUG_HINT in top_nms:
+                # Reuse id from 'top'
+                inf     = [inf for inf in top_nms.splitlines() if PLUG_HINT in inf][0]     ##?? 
+                id_menu = inf.split('|')[2]
+                app.app_proc(app.PROC_MENU_CLEAR, id_menu)
+            else:
+                # Create BEFORE Plugins
+                top_nms = top_nms.splitlines()
+                pass;              #LOG and log('top_nms={}',top_nms)
+                if app.app_exe_version() >= '1.0.131':
+                    plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]
+                else: # old, pre i18n
+                    plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
+                id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', PLUG_HINT, _('&Macros'), plg_ind))
         # Fill
         app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config',_('&Macros...')))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
@@ -112,7 +109,7 @@ class Command:
         id_sub  = app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, _('&Run')))
         for mcr in self.macros:
             app.app_proc(app.PROC_MENU_ADD, '{};{}{};{}'.format(id_sub, 'cuda_macros,run,',mcr['id'], mcr['nm']))
-       #def _adapt_menu
+       #def adapt_menu
         
     def dlg_export(self):
         ''' Show dlg for export some macros.
@@ -589,7 +586,7 @@ class Command:
         
         # [Re]Build menu
         if '|menu|' in acts:
-            self._adapt_menu()
+            self.adapt_menu()
        #def _do_acts
 
     def run(self, mcr_id, times=1, waits=0, while_chngs=False, till_endln=False):
