@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.2 2016-04-04'
+    '1.1.3 2016-05-06'
 ToDo: (see end of file)
 '''
 
@@ -96,19 +96,30 @@ class Command:
                     plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
                 id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', PLUG_HINT, _('&Macros'), plg_ind))
         # Fill
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config',_('&Macros...')))
+        def hotkeys_desc(cmd_id):
+            hk_s= get_hotkeys_desc(cmd_id)
+            hk_s= '\t\t'+hk_s if hk_s else hk_s
+            return hk_s
+        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_config')
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config',_('&Macros...')+hk_s))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart,     _('&Start record')))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,      _('St&op record')))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,    _('&Cancel record')))
+        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroStart)
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart,     _('&Start record')+hk_s))
+        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroStop)
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,      _('St&op record')+hk_s))
+        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroCancel)
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,    _('&Cancel record')+hk_s))
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_export',_('&Export...')))
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_import',_('&Import...')))
+        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_export')
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_export',_('&Export...')+hk_s))
+        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_import')
+        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_import',_('&Import...')+hk_s))
         if 0==len(self.macros): return
         app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
         id_sub  = app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, _('&Run')))
         for mcr in self.macros:
-            app.app_proc(app.PROC_MENU_ADD, '{};{}{};{}'.format(id_sub, 'cuda_macros,run,',mcr['id'], mcr['nm']))
+            hk_s= hotkeys_desc(                                       f('cuda_macros,run,{}',mcr['id']))
+            app.app_proc(app.PROC_MENU_ADD, '{};{}{};{}'.format(id_sub, 'cuda_macros,run,'  ,mcr['id'], mcr['nm']+hk_s))
        #def adapt_menu
         
     def dlg_export(self):
@@ -624,7 +635,7 @@ class Command:
  ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
  ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=300   ,cap=_('&Cancel playback [ESC]')                                )
                         ])
-                btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, vals)
+                btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, {})
                 if btn is None or btn=='stop':
                     pass;       LOG and log('break by user',)
                     app.msg_status(_('Cancel playback macro: {}'.format(mcr['nm'])))
