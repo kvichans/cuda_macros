@@ -144,8 +144,8 @@ class Command:
  ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+70          ,r=GAP+WD_LST-35 ,en='0'                                 )
  ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                          )
  ,dict(cid='mcrs'   ,tp='ch-lbx',t=35   ,h=HT_LST   ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in self.macros])
- ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=80            ,cap=_('Check &all')                    )
- ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+80        ,w=80            ,cap=_('U&ncheck all')                  )
+ ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=100           ,cap=_('Check &all')                    )
+ ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+100       ,w=100           ,cap=_('U&ncheck all')                  )
  ,dict(cid='expo'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=    WD_LST-70*2 ,w=70            ,cap=_('&Export')       ,props='1'      )   # default
  ,dict(cid='-'      ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP+WD_LST-70*1 ,w=70            ,cap=_('Close')                         )
                     ])
@@ -233,8 +233,8 @@ class Command:
  ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+85          ,r=GAP+WD_LST-35 ,en='0'                             )
  ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                      )
  ,dict(cid='mcrs'   ,tp='ch-lbx',t=35  ,h=HT_LST    ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in mcrs]  )
- ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=80            ,cap=_('Check &all')                )
- ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+80        ,w=80            ,cap=_('U&ncheck all')              )
+ ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=100           ,cap=_('Check &all')                )
+ ,dict(cid='ch-n'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*2+100       ,w=100           ,cap=_('U&ncheck all')              )
  ,dict(cid='impo'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=    WD_LST-70*2 ,w=70            ,cap=_('&Import')       ,props='1'  )   # default
  ,dict(cid='-'      ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP+WD_LST-70*1 ,w=70            ,cap=_('Close')                     )
                     ])
@@ -316,10 +316,12 @@ class Command:
                                    ]).strip('/')
                 nmkys  += [mcr['nm'] + (' ['+kys+']' if kys else '')]
 
-            mcr_acts= ''
+            mcr_acts= ['']
+#           mcr_acts= ''
             if vw_acts and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
-                mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
+                mcr_acts=           ['# '+nmkys[mcr_ind]] + mcr['evl']
+#               mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
 
             def_stst    = '1' if                     rec_on or 0==lmcrs else '0'
             n_edable    = '0' if                     rec_on or 0==lmcrs else '1'
@@ -732,5 +734,5 @@ ToDo
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
 [ ][kv-kv][08dec15] Test rec: call plug, call macro, call menu
 [+][at-kv][18dec15] Check api-ver
-[?][kv-kv][11jan16] Use PROC_SET_ESCAPE
+[?][kv-kv][11jan16] Use PROC_SET_ESCAPE and progress
 '''
