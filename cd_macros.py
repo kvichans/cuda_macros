@@ -29,9 +29,9 @@ C2      = chr(2)
 POS_FMT = 'pos={l},{t},{r},{b}'.format
 GAP     = 5
 
-at4chk  = top_plus_for_os('check')
-at4lbl  = top_plus_for_os('label')
-at4btn  = top_plus_for_os('button')
+#at4chk  = top_plus_for_os('check')
+#at4lbl  = top_plus_for_os('label')
+#at4btn  = top_plus_for_os('button')
 
 class Command:
     CMD_ID2NM   = {}    # {val: name} from cudatext_cmd.py
@@ -153,7 +153,8 @@ class Command:
                            ,mcrs=(crt, sels)
                         )
             btn,    \
-            vals    = dlg_wrapper(_('Export macros')   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2-GAP, cnts, vals, focus_cid='mrcs')
+            vals,   \
+            chds    = dlg_wrapper(_('Export macros')   ,GAP+WD_LST+GAP, GAP*5+HT_LST+25*2-GAP, cnts, vals, focus_cid='mrcs')
             if btn is None or btn=='-': return
             crt,sels= vals['mcrs']
             pass;               LOG and log('sels={}',sels)
@@ -242,7 +243,8 @@ class Command:
                            ,mcrs=(crt, sels)
                         )
             btn,    \
-            vals    = dlg_wrapper(_('Import macros'), GAP+WD_LST+GAP, GAP*4+HT_LST+25*2, cnts, vals, focus_cid='mrcs')
+            vals,   \
+            chds    = dlg_wrapper(_('Import macros'), GAP+WD_LST+GAP, GAP*4+HT_LST+25*2, cnts, vals, focus_cid='mrcs')
             if btn is None or btn=='-': return
             crt,sels= vals['mcrs']
             pass;               LOG and log('sels={}',sels)
@@ -364,7 +366,8 @@ class Command:
                       dict( acts=mcr_acts
                         ))
             btn,    \
-            vals    = dlg_wrapper(_('Macros'), GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, cnts, vals, focus_cid='mrcs')
+            vals,   \
+            chds    = dlg_wrapper(_('Macros'), GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, cnts, vals, focus_cid='mrcs')
             if btn is None or btn=='-': return
             mcr_ind = vals['mrcs']
             times   = vals['times']
@@ -637,7 +640,7 @@ class Command:
  ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
  ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=300   ,cap=_('&Cancel playback [ESC]')                                )
                         ])
-                btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, {})
+                btn,vals,chds= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, {})
                 if btn is None or btn=='stop':
                     pass;       LOG and log('break by user',)
                     app.msg_status(_('Cancel playback macro: {}'.format(mcr['nm'])))
@@ -722,7 +725,7 @@ def _testing():
  ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
  ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=400   ,cap=_('&Cancel playback [ESC]')                                )
                         ])
-    btn,vals= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts)
+    btn,vals,chds= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts)
 #_testing()
 
 '''
