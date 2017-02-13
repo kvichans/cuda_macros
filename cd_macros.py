@@ -46,8 +46,10 @@ class Command:
                             if nm.startswith('cCommand_') or nm.startswith('cmd_')]
         cmd_nm2id       = {nm:eval('cmds.{}'.format(nm))    for nm in cmd_nms}
         self.CMD_ID2NM  = {str(cmd_id):nm                   for nm,cmd_id in cmd_nm2id.items()}
-        if len(self.CMD_ID2NM) < len(cmd_nm2id):
+        if False and len(self.CMD_ID2NM) < len(cmd_nm2id):
             app.msg_status('Repeated values in cudatext_cmd.py')
+            ddnms   = [nm for nm,id in cmd_nm2id.items() if nm not in self.CMD_ID2NM.values()]
+            pass;               log('CMD names with eq values {}',(ddnms))
         pass;                  #LOG and log('cmd_nm2id={}',cmd_nm2id)
         pass;                  #LOG and log('CMD_ID2NM={}',self.CMD_ID2NM)
         
@@ -325,6 +327,7 @@ class Command:
                 mcr_acts=           ['# '+nmkys[mcr_ind]] + mcr['evl']
 #               mcr_acts= '\t'.join(['# '+nmkys[mcr_ind]] + mcr['evl'])
 
+            act4mrcs    = '1' if vw_acts else '0'
             def_stst    = '1' if                     rec_on or 0==lmcrs else '0'
             n_edable    = '0' if                     rec_on or 0==lmcrs else '1'
             n_vwable    = '1' if not vw_acts and not rec_on else '0'
@@ -333,23 +336,24 @@ class Command:
             tims_props  = '0,{},1'.format(self.dlg_prs.get('times',  1000))
             stst_cap    = _('&Stop record') if       rec_on else _('&Start record')
             cnts        = ([]
- +[dict(cid='mrcs'   ,tp='lbx'  ,t=GAP  ,h=HT_LST       ,l=GAP                  ,w=WD_LST   ,items=nmkys                            ,en=only_rec_off    )]
- +(                                                                                                     
-  [dict(cid='view'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('&View actions') ,props=n_edable,en=n_edable         )]  # default
-  if vw_acts else [])                                                                                     
- +[dict(cid='keys'   ,tp='bt'   ,t=GAP* 2+HT_BTN* 1     ,l=l_btn                ,w=WD_BTN   ,cap=_('Hot&keys...')                   ,en=n_edable        )]
- +[dict(cid='renm'   ,tp='bt'   ,t=GAP* 3+HT_BTN* 2     ,l=l_btn                ,w=WD_BTN   ,cap=_('Re&name...')                    ,en=n_edable        )]
- +[dict(cid='del'    ,tp='bt'   ,t=GAP* 4+HT_BTN* 3     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Delete...')                    ,en=n_edable        )]
- +[dict(cid='run'    ,tp='bt'   ,t=GAP* 6+HT_BTN* 5     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Run!')         ,props=n_vwable ,en=n_edable        )]  # default
+ +[dict(cid='mrcs'   ,tp='lbx'  ,t=GAP  ,h=HT_LST       ,l=GAP                  ,w=WD_LST   ,items=nmkys            ,act=act4mrcs  ,en=only_rec_off    )]
+#+(                                                                                                     
+# [dict(cid='view'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('&View actions') ,props=n_edable,en=n_edable         )]  # default
+# if vw_acts else [])                                                                                     
+ +[dict(cid='keys'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('Hot&keys...')                   ,en=n_edable        )]
+ +[dict(cid='renm'   ,tp='bt'   ,t=GAP* 2+HT_BTN* 1     ,l=l_btn                ,w=WD_BTN   ,cap=_('Re&name...')                    ,en=n_edable        )]
+ +[dict(cid='del'    ,tp='bt'   ,t=GAP* 3+HT_BTN* 2     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Delete...')                    ,en=n_edable        )]
+ +[dict(cid='run'    ,tp='bt'   ,t=GAP* 5+HT_BTN* 4     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Run!')         ,props=n_vwable ,en=n_edable        )]  # default
  +[dict(              tp='lb'   ,tid='times'            ,l=l_btn                ,w=WD_BTN_3 ,cap=_('&Times')                                            )]
- +[dict(cid='times'  ,tp='sp-ed',t=GAP* 7+HT_BTN* 6     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN                     ,props=tims_props,en=only_rec_off   )]  # min,max,step
+ +[dict(cid='times'  ,tp='sp-ed',t=GAP* 6+HT_BTN* 5     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN                     ,props=tims_props,en=only_rec_off   )]  # min,max,step
  +[dict(              tp='lb'   ,tid='waits'            ,l=l_btn                ,w=WD_BTN_3 ,cap=_('&Wait')                                             )]
- +[dict(cid='waits'  ,tp='sp-ed',t=GAP* 8+HT_BTN* 7     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN-40                  ,props='1,3600,1',en=only_rec_off   )]  # min,max,step
+ +[dict(cid='waits'  ,tp='sp-ed',t=GAP* 7+HT_BTN* 6     ,l=l_btn+WD_BTN_3+GAP   ,r=l_btn+WD_BTN-40                  ,props='1,3600,1',en=only_rec_off   )]  # min,max,step
  +[dict(              tp='lb'   ,tid='waits'            ,l=l_btn+WD_BTN-40+GAP  ,w=WD_BTN   ,cap=_('sec')                                               )]
- +[dict(cid='chngs'  ,tp='ch'   ,t=GAP* 9+HT_BTN* 8     ,l=l_btn                ,w=WD_BTN   ,cap=_('While text c&hanges')                               )]
- +[dict(cid='endln'  ,tp='ch'   ,t=GAP*10+HT_BTN* 9     ,l=l_btn                ,w=WD_BTN   ,cap=_('Until c&aret on last line')                         )]
- +[dict(cid='stst'   ,tp='bt'   ,t=GAP*12+HT_BTN*11     ,l=l_btn                ,w=WD_BTN   ,cap=stst_cap           ,props=def_stst                     )]
- +[dict(cid='canc'   ,tp='bt'   ,t=GAP*13+HT_BTN*12     ,l=l_btn                ,w=WD_BTN   ,cap=_('Canc&el record')                ,en=only_rec_on     )]
+ +[dict(cid='chngs'  ,tp='ch'   ,t=GAP* 8+HT_BTN* 7     ,l=l_btn                ,w=WD_BTN   ,cap=_('While text c&hanges')                               )]
+ +[dict(cid='endln'  ,tp='ch'   ,t=GAP* 9+HT_BTN* 8     ,l=l_btn                ,w=WD_BTN   ,cap=_('Until c&aret on last line')                         )]
+ +[dict(cid='stst'   ,tp='bt'   ,t=GAP*11+HT_BTN*10     ,l=l_btn                ,w=WD_BTN   ,cap=stst_cap           ,props=def_stst                     )]
+ +[dict(cid='canc'   ,tp='bt'   ,t=GAP*12+HT_BTN*11     ,l=l_btn                ,w=WD_BTN   ,cap=_('Canc&el record')                ,en=only_rec_on     )]
+ +[dict(cid='view'   ,tp='ch'   ,t=GAP*14+HT_BTN*13     ,l=l_btn                ,w=WD_BTN   ,cap=_('Show actions')                                      )]
  +[dict(cid='adju'   ,tp='bt'   ,t=    HT_LST-HT_BTN*2  ,l=l_btn                ,w=WD_BTN   ,cap=_('Ad&just...')                    ,en=only_rec_off    )]
  +[dict(cid='-'      ,tp='bt'   ,t=GAP+HT_LST-HT_BTN*1  ,l=l_btn                ,w=WD_BTN   ,cap=_('Close')                                             )]
  +(
@@ -361,6 +365,7 @@ class Command:
                            ,waits=waits
                            ,chngs=chngs
                            ,endln=endln
+                           ,view=vw_acts
                         )
             if vw_acts: vals.update(
                       dict( acts=mcr_acts
@@ -374,6 +379,7 @@ class Command:
             waits   = vals['waits']
             chngs   = vals['chngs']
             endln   = vals['endln']
+            vw_acts = vals['view']
             pass;               LOG and log('mcr_ind,times,waits,chngs,endln={}',(mcr_ind,times,waits,chngs,endln))
 
             if 0!=lmcrs and mcr_ind in range(lmcrs):
@@ -425,7 +431,7 @@ class Command:
                 
             elif btn=='del': #ans_s=='delete': #Del
                 if app.msg_box( _('Delete macro\n    {}').format(nmkys[mcr_ind])
-                              , app.MB_YESNO)!=app.ID_YES:  continue #while
+                              , app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:  continue #while
                 what    = 'delete:'+str(mcr['id'])
                 del self.macros[mcr_ind]
                 mcr_ind = min(mcr_ind, len(self.macros)-1)
