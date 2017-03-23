@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.3 2016-05-06'
+    '1.1.4 2017-03-23'
 ToDo: (see end of file)
 '''
 
@@ -129,7 +129,7 @@ class Command:
         '''
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         if 0==len(self.macros):                     return app.msg_status(_('No macros for export'))
-        exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
+        exp_file= app.dlg_file(False, '', '', 'CudaText macros|*.cuda-macros')
         exp_file= '' if exp_file is None else exp_file
         exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
         (WD_LST
@@ -162,7 +162,7 @@ class Command:
             pass;               LOG and log('sels={}',sels)
             if False:pass
             elif btn=='brow': #ans_s=='file':
-                new_exp_file= app.dlg_file(False, '', '', 'Cuda macros|*.cuda-macros')
+                new_exp_file= app.dlg_file(False, '', '', 'CudaText macros|*.cuda-macros')
                 if new_exp_file is not None:
                     exp_file    = new_exp_file
                     exp_file    = exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
@@ -182,7 +182,7 @@ class Command:
     def dlg_import_choose_mcrs(self):
         l,lt    = '\n', '\n  '
         while True:
-            imp_file= app.dlg_file(True, '', '', 'Cuda macros|*.cuda-macros|All file|*.*')
+            imp_file= app.dlg_file(True, '', '', 'CudaText macros|*.cuda-macros|All file|*.*')
             if imp_file is None:
                 return (None, None)
             vers_mcrs   = apx._json_loads(open(imp_file).read())
