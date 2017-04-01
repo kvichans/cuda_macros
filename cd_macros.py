@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.4 2017-03-23'
+    '1.1.5 2017-04-01'
 ToDo: (see end of file)
 '''
 
@@ -404,7 +404,7 @@ class Command:
                     open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
                 continue #while
             
-            if mcr_ind not in range(lmcrs):
+            if btn!='stst' and mcr_ind not in range(lmcrs):
                 app.msg_box(_('Select macro'), app.MB_OK)
                 continue #while
             
