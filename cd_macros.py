@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.1.5 2017-04-01'
+    '1.1.6 2017-06-21'
 ToDo: (see end of file)
 '''
 
@@ -20,7 +20,10 @@ _       = get_translation(__file__)
 pass;                           # Logging
 pass;                           LOG = (-2== 2)  # Do or dont logging.
 
-FROM_API_VERSION= '1.0.114'
+FROM_API_VERSION = '1.0.114'
+FROM_API_VERSION = '1.0.172' # menu_proc() <== PROC_MENU_*
+FROM_API_VERSION = '1.0.185' # menu_proc() with hotkey, tag
+
 JSON_FORMAT_VER = '20151204'
 MACROS_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'macros.json'
 
@@ -72,56 +75,48 @@ class Command:
         self._do_acts(acts='|reg|menu|')
        #def on_start
         
-    def adapt_menu(self,id_menu=0):
+    def adapt_menu(self, id_menu=0):
         ''' Add or change top-level menu Macros
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
         '''
-        pass;                   LOG and log('id_menu={}',id_menu)
-        PLUG_HINT   = '_'+'cuda_macros:adapt_menu'  # "_" is sign for ConfigMenu. ":" is subst for "," to avoid call "import ..."
+        if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
+        pass;                  #LOG and log('id_menu={}',id_menu)
+        PLUG_AUTAG  = 'auto_config:cuda_macros.adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
-            app.app_proc(app.PROC_MENU_CLEAR, str(id_menu))
+            app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
-            top_nms = app.app_proc(app.PROC_MENU_ENUM, 'top')
-            if PLUG_HINT in top_nms:
+            top_its = app.menu_proc(    'top', app.MENU_ENUM)
+            if PLUG_AUTAG in [it['tag'] for it in top_its]:
                 # Reuse id from 'top'
-                inf     = [inf for inf in top_nms.splitlines() if PLUG_HINT in inf][0]     ##?? 
-                id_menu = inf.split('|')[2]
-                app.app_proc(app.PROC_MENU_CLEAR, id_menu)
+                id_menu = [it['id'] for it in top_its if it['tag']==PLUG_AUTAG][0]
+                app.menu_proc(          id_menu, app.MENU_CLEAR)
             else:
                 # Create BEFORE Plugins
-                top_nms = top_nms.splitlines()
-                pass;              #LOG and log('top_nms={}',top_nms)
-                if app.app_exe_version() >= '1.0.131':
-                    plg_ind = [i for (i,nm) in enumerate(top_nms) if '|plugins' in nm][0]
-                else: # old, pre i18n
-                    plg_ind = top_nms.index('&Plugins|')                                                    ##?? 
-                id_menu = app.app_proc( app.PROC_MENU_ADD, '{};{};{};{}'.format('top', PLUG_HINT, _('&Macros'), plg_ind))
+                plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it['hint']][0]
+                id_menu = app.menu_proc('top', app.MENU_ADD, tag=PLUG_AUTAG, index=plg_ind,     caption=_('&Macros'))
         # Fill
-        def hotkeys_desc(cmd_id):
-            hk_s= get_hotkeys_desc(cmd_id)
-            hk_s= '\t\t'+hk_s if hk_s else hk_s
-            return hk_s
-        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_config')
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_config',_('&Macros...')+hk_s))
-        app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroStart)
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStart,     _('&Start record')+hk_s))
-        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroStop)
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroStop,      _('St&op record')+hk_s))
-        hk_s    = hotkeys_desc(                                    cmds.cmd_MacroCancel)
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, cmds.cmd_MacroCancel,    _('&Cancel record')+hk_s))
-        app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_export')
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_export',_('&Export...')+hk_s))
-        hk_s    = hotkeys_desc(                                    'cuda_macros,dlg_import')
-        app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 'cuda_macros,dlg_import',_('&Import...')+hk_s))
+        app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_config,                     caption=_('&Macros...')
+                     , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_config'))
+        app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
+        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStart,                 caption=_('&Start record')
+                     , hotkey=get_hotkeys_desc(            cmds.cmd_MacroStart))
+        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStop,                  caption=_('St&op record')
+                     , hotkey=get_hotkeys_desc(            cmds.cmd_MacroStop))
+        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroCancel,                caption=_('&Cancel record')
+                     , hotkey=get_hotkeys_desc(            cmds.cmd_MacroCancel))
+        app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
+        app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_export,                     caption=_('&Export...')
+                     , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_export'))
+        app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_import,                     caption=_('&Import...')
+                     , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_import'))
         if 0==len(self.macros): return
-        app.app_proc(app.PROC_MENU_ADD, '{};;-'.format(   id_menu))
-        id_sub  = app.app_proc(app.PROC_MENU_ADD, '{};{};{}'.format(id_menu, 0, _('&Run')))
+        app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
+        def call_with(call,p):
+            return lambda:call(p)
         for mcr in self.macros:
-            hk_s= hotkeys_desc(                                       f('cuda_macros,run,{}',mcr['id']))
-            app.app_proc(app.PROC_MENU_ADD, '{};{}{};{}'.format(id_sub, 'cuda_macros,run,'  ,mcr['id'], mcr['nm']+hk_s))
+            app.menu_proc(  id_menu,app.MENU_ADD, command=call_with(self.run,    mcr['id']),    caption=mcr['nm']
+                         , hotkey=get_hotkeys_desc(         'cuda_macros,run,{}',mcr['id']))
        #def adapt_menu
         
     def dlg_export(self):
