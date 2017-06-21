@@ -81,7 +81,7 @@ class Command:
         '''
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         pass;                  #LOG and log('id_menu={}',id_menu)
-        PLUG_AUTAG  = 'auto_config:cuda_macros.adapt_menu'    # tag for ConfigMenu to call this method
+        PLUG_AUTAG  = 'auto_config:cuda_macros,adapt_menu'    # tag for ConfigMenu to call this method
         if id_menu!=0:
             # Use this id
             app.menu_proc(              id_menu, app.MENU_CLEAR)
