@@ -642,36 +642,34 @@ class Command:
         pre_body    = '' if not while_chngs else ed.get_text_all()
         _run        = _run_chk if till_endln else _run_fast
 
-        cap_text =_('Macro "{}" playback time is too long'.format(mcr['nm']))
-        cap_wait = _('Wait &another {} sec').format(tm_wait) # default
-        cap_cont =_('Continue &without control')
-        cap_stop =_('&Cancel playback [ESC]')
+        cap_text    = f(_('Macro "{}" playback time is too long'), mcr['nm'])
+        cap_wait    = f(_('Wait &another {} sec'), tm_wait) # default
+        cap_cont    = _('Continue &without control')
+        cap_stop    = _('&Cancel playback [ESC]')
 
         for rp in range(times if times>0 else 0xffffffff):
             if _run():
-                break   #for rp
+                break#for rp
             if while_chngs:
                 new_body    = ed.get_text_all()
                 if pre_body == new_body:
                     pass;       LOG and log('break no change',)
-                    break   #for rp
+                    break#for rp
                 pre_body    = new_body
             if  (how_t=='wait'
             and (rp_ctrl-1) == rp % rp_ctrl
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
-                btn = app.msg_box_ex(
-                    _('Macro playback'),
-                    cap_text,
-                    [cap_wait, cap_cont, cap_stop],
-                    app.MB_ICONWARNING
-                    )
+                btn = app.msg_box_ex(_('Macro playback')
+                                    ,cap_text
+                                    ,[cap_wait, cap_cont, cap_stop]
+                                    ,app.MB_ICONWARNING)
                 if btn is None or btn==2:
                     pass;       LOG and log('break by user',)
                     app.msg_status(_('Cancel playback macro: {}'.format(mcr['nm'])))
-                    break   #for rp
-                elif btn==1: #ans=='cont':
+                    break#for rp
+                elif btn==1:    #cap_cont
                     how_t   = 'work'
-                elif btn==0: #ans=='wait':
+                elif btn==0:    #cap_wait
                     start_t = datetime.datetime.now()
            #for rp
         self.last_mcr_id = mcr_id
