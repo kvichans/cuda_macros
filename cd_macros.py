@@ -633,7 +633,7 @@ class Command:
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
         start_t     = datetime.datetime.now()
         pre_body    = '' if not while_chngs else ed.get_text_all()
-        _run = _run_chk if till_endln else _run_fast
+        _run        = _run_chk if till_endln else _run_fast
 
         for rp in range(times if times>0 else 0xffffffff):
             if _run():
