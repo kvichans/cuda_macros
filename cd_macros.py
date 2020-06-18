@@ -623,9 +623,10 @@ class Command:
             return app.msg_status(_('No macros: {}').format(mcr_id))
 
         _mcr = mcr['evl']
+        _mcr_s = ';'.join(_mcr) 
 
         def _run_fast():
-            exec(';'.join(_mcr))
+            exec(_mcr_s)
 
         def _run_chk():
             for s in _mcr:
