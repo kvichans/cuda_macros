@@ -46,11 +46,11 @@ class Command:
 
     macros      = []    # Main list [macro]
     mcr4id      = {}    # Derived dict {str_id:macro}
-    
+
 #   id_menu     = 0
-    
+
     def __init__(self):
-        cmd_nms         = [nm                               for nm in dir(cmds) 
+        cmd_nms         = [nm                               for nm in dir(cmds)
                             if nm.startswith('cCommand_') or nm.startswith('cmd_')]
         cmd_nm2id       = {nm:eval('cmds.{}'.format(nm))    for nm in cmd_nms}
         self.CMD_ID2NM  = {str(cmd_id):nm                   for nm,cmd_id in cmd_nm2id.items()}
@@ -60,7 +60,7 @@ class Command:
             pass;               log('CMD names with eq values {}',(ddnms))
         pass;                  #LOG and log('cmd_nm2id={}',cmd_nm2id)
         pass;                  #LOG and log('CMD_ID2NM={}',self.CMD_ID2NM)
-        
+
         ver_macros      = apx._json_loads(open(MACROS_JSON).read()) if os.path.exists(MACROS_JSON) else {'ver':JSON_FORMAT_VER, 'list':[]}
         if ver_macros['ver'] < JSON_FORMAT_VER:
             # Adapt to new format
@@ -69,17 +69,17 @@ class Command:
         self.dlg_prs    = ver_macros.get('dlg_prs', {})
         self.macros     = ver_macros['list']
         self.mcr4id     = {str(mcr['id']):mcr for mcr in self.macros}
-        
+
         self.need_dlg   = False
         self.last_mcr_id= 0
-        
+
         pass;                   LOG and log('\n\n\nMacros start',)
        #def __init__
-       
+
     def on_start(self, ed_self):
         self._do_acts(acts='|reg|menu|')
        #def on_start
-        
+
     def adapt_menu(self, id_menu=0):
         ''' Add or change top-level menu Macros
             Param id_menu points to exist menu item (ie by ConfigMenu) for filling
@@ -123,7 +123,7 @@ class Command:
             app.menu_proc(  id_menu,app.MENU_ADD, command=call_with(self.run,    mcr['id']),    caption=mcr['nm']
                          , hotkey=get_hotkeys_desc(         'cuda_macros,run,{}',mcr['id']))
        #def adapt_menu
-        
+
     def dlg_export(self):
         ''' Show dlg for export some macros.
         '''
@@ -135,7 +135,7 @@ class Command:
         (WD_LST
         ,HT_LST)= (500
                   ,500)
-        
+
         lmcrs   = len(self.macros)
         crt,sels= '0', ['0'] * lmcrs
         while True:
@@ -178,7 +178,7 @@ class Command:
                 return
            #while True:
        #def dlg_export
-        
+
     def dlg_import_choose_mcrs(self):
         l,lt    = '\n', '\n  '
         while True:
@@ -188,15 +188,15 @@ class Command:
             vers_mcrs   = apx._json_loads(open(imp_file).read())
             if vers_mcrs is None:
                 if app.ID_OK != app.msg_box(_('No macros in file\n  {}\n\nChoose another file?').format(imp_file)
-                    ,app.MB_OKCANCEL):  
+                    ,app.MB_OKCANCEL):
                     return (None, None)
                 continue #while
             vers        = vers_mcrs.get('vers', {})
             if (app.app_api_version() < vers.get('ver-api', app.app_api_version())
             and app.ID_OK != app.msg_box(
                         _('Macros from')
-                    +lt+imp_file    
-                    +l+ _('are recorded in CudaText with version') 
+                    +lt+imp_file
+                    +l+ _('are recorded in CudaText with version')
                     +lt+    '"{}"'
                     +l+ _('Your CudaText has older version')
                     +lt+    '"{}"'
@@ -210,12 +210,12 @@ class Command:
             if 0!=len(mcrs):
                 break #while
             if app.ID_OK != app.msg_box(_('No macros in file\n  {}\n\nChoose another file?').format(imp_file)
-                ,app.MB_OKCANCEL):  
+                ,app.MB_OKCANCEL):
                 return (None, None)
            #while True:
         return (imp_file, mcrs)
        #def dlg_import_choose_mcrs
-        
+
     def dlg_import(self):
         ''' Show dlg for import some macros.
         '''
@@ -224,7 +224,7 @@ class Command:
         ,mcrs)  = self.dlg_import_choose_mcrs()
         if imp_file is None:    return
         lmcrs   = len(mcrs)
-        
+
         WD_LST, \
         HT_LST  = (500
                   ,500)
@@ -284,7 +284,7 @@ class Command:
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
         keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
-        
+
         ids     = [mcr['id'] for mcr in self.macros]
         mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
         pass;                   LOG and log('self.last_mcr_id, mcr_ind={}',(self.last_mcr_id,mcr_ind))
@@ -304,7 +304,7 @@ class Command:
             WD_BTN_3= int(WD_BTN/3)
             l_btn   = GAP+WD_LST+GAP
             l_acts  = GAP+WD_LST+GAP+WD_BTN+GAP
-            
+
             vw_acts = (WD_ACTS>0)
             WD_ACTS = max(0, WD_ACTS)
             rec_on  = ed.get_prop(app.PROP_MACRO_REC)
@@ -337,9 +337,9 @@ class Command:
             stst_cap    = _('&Stop record') if       rec_on else _('&Start record')
             cnts        = ([]
  +[dict(cid='mrcs'   ,tp='lbx'  ,t=GAP  ,h=HT_LST       ,l=GAP                  ,w=WD_LST   ,items=nmkys            ,act=act4mrcs  ,en=only_rec_off    )]
-#+(                                                                                                     
+#+(
 # [dict(cid='view'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('&View actions') ,props=n_edable,en=n_edable         )]  # default
-# if vw_acts else [])                                                                                     
+# if vw_acts else [])
  +[dict(cid='keys'   ,tp='bt'   ,t=GAP* 1+HT_BTN* 0     ,l=l_btn                ,w=WD_BTN   ,cap=_('Hot&keys...')                   ,en=n_edable        )]
  +[dict(cid='renm'   ,tp='bt'   ,t=GAP* 2+HT_BTN* 1     ,l=l_btn                ,w=WD_BTN   ,cap=_('Re&name...')                    ,en=n_edable        )]
  +[dict(cid='del'    ,tp='bt'   ,t=GAP* 3+HT_BTN* 2     ,l=l_btn                ,w=WD_BTN   ,cap=_('&Delete...')                    ,en=n_edable        )]
@@ -385,7 +385,7 @@ class Command:
             if 0!=lmcrs and mcr_ind in range(lmcrs):
                 mcr     = self.macros[mcr_ind]
                 self.last_mcr_id = mcr['id']
-            
+
 #           if ans_s=='close':  break #while
             if btn=='adju': #ans_s=='custom': #Custom
                 custs   = app.dlg_input_ex(5, _('Custom dialog Macros')
@@ -403,15 +403,15 @@ class Command:
                     self.dlg_prs['times']   = max(100, int(custs[4]))
                     open(MACROS_JSON, 'w').write(json.dumps({'ver':JSON_FORMAT_VER, 'list':self.macros, 'dlg_prs':self.dlg_prs}, indent=4))
                 continue #while
-            
+
             if btn!='stst' and mcr_ind not in range(lmcrs):
                 app.msg_box(_('Select macro'), app.MB_OK)
                 continue #while
-            
+
             what    = ''
             changed = False
             if False:pass
-                
+
             elif btn=='view': #ans_s=='view': #View
                 continue #while
 
@@ -428,7 +428,7 @@ class Command:
                 what        = 'rename'
                 mcr['nm']   = mcr_nm
                 changed = True
-                
+
             elif btn=='del': #ans_s=='delete': #Del
                 if app.msg_box( _('Delete macro\n    {}').format(nmkys[mcr_ind])
                               , app.MB_YESNO+app.MB_ICONQUESTION)!=app.ID_YES:  continue #while
@@ -436,14 +436,14 @@ class Command:
                 del self.macros[mcr_ind]
                 mcr_ind = min(mcr_ind, len(self.macros)-1)
                 changed = True
-                
+
             elif btn=='keys': #ans_s=='hotkeys': #Hotkeys
                 app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
                 keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
                 changed = True
 
             elif btn=='run': #ans_s=='run': #Run
-                if (times==0 
+                if (times==0
                 and waits==0
                 and chngs=='0'
                 and endln=='0'):
@@ -462,12 +462,12 @@ class Command:
             elif btn=='canc'     and     rec_on: #Cancel record
 #           elif ans_s=='cancel' and     rec_on: #Cancel record
                 return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode in StatusBar
-                
+
             if changed:
                 self._do_acts(what)
            #while True
        #def dlg_config
-        
+
     def on_macro(self, ed_self, mcr_record):
         ''' Finish for macro-recording.
             Params
@@ -499,7 +499,7 @@ class Command:
                 mcr_nm  = mcr_nm[1:]
             if ''!=mcr_nm:  break #while
         pass;                   LOG and log('self.need_dlg, use_old, mcr_nm={}',(self.need_dlg, use_old, mcr_nm))
-        
+
         if use_old and mcr_nm in nms:
             mcr_ind     = nms.index(mcr_nm)
             self.macros[mcr_ind]['rec'] = mcr_record
@@ -510,7 +510,7 @@ class Command:
                 app.msg_box(_('Select other name.\nMacros names now:\n\n')+'\n'.join(nms), app.MB_OK)
                 mcr_nm  = app.dlg_input('Macro name', mcr_nm)
                 if mcr_nm is None:   return
-        
+
             id4mcr      = random.randint(10000, 99999)
             while id4mcr in self.mcr4id:
                 id4mcr  = random.randint(10000, 99999)
@@ -520,7 +520,7 @@ class Command:
                             ,'evl':self._record_data_to_cmds(mcr_record)
                             }]
         self._do_acts()
-        
+
         if self.need_dlg:
             self.need_dlg   = False
             self.last_mcr_id= id4mcr
@@ -579,20 +579,20 @@ class Command:
                 ,'tm_ctrl':{'rp_ctrl':self.tm_ctrl.get('rp_ctrl', 1000)
                            ,'tm_wait':self.tm_ctrl.get('tm_wait', 10)}
                 }, indent=4))
-        
+
         # Secondary data
         if '|second|' in acts:
             self.mcr4id     = {str(mcr['id']):mcr for mcr in self.macros}
-        
+
         # Register new subcommands
         if '|reg|' in acts:
             reg_subs        = 'cuda_macros;run;{}'.format('\n'.join(
-                             'Macros: {}\t{}'.format(mcr['nm'],mcr['id']) 
+                             'Macros: {}\t{}'.format(mcr['nm'],mcr['id'])
                                  for mcr in self.macros)
                              )
             pass;              #LOG and log('reg_subs={}',reg_subs)
             app.app_proc(app.PROC_SET_SUBCOMMANDS, reg_subs)
-        
+
         # Clear keys.json
         if '|keys|' in acts and ':' in what:
             # Need delete a key 'cuda_macros,run,NNNNN'
@@ -605,7 +605,7 @@ class Command:
             if keys.pop(mcr_key, None) is not None:
                 pass;          #LOG and log('UPD keys.json deleted key={}',mcr_key)
                 open(keys_json, 'w').write(json.dumps(keys, indent=2))
-        
+
         # [Re]Build menu
         if '|menu|' in acts:
             self.adapt_menu()
@@ -623,7 +623,7 @@ class Command:
             return app.msg_status(_('No macros: {}').format(mcr_id))
 
         _mcr = mcr['evl']
-        _mcr_s = ';'.join(_mcr) 
+        _mcr_s = ';'.join(_mcr)
 
         def _run_fast():
             exec(_mcr_s)
@@ -640,39 +640,43 @@ class Command:
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
         start_t     = datetime.datetime.now()
         pre_body    = '' if not while_chngs else ed.get_text_all()
-        _run = _run_chk if till_endln else _run_fast
+        _run        = _run_chk if till_endln else _run_fast
+
+        cap_text =_('Macro "{}" playback time is too long'.format(mcr['nm']))
+        cap_wait = _('Wait &another {} sec').format(tm_wait) # default
+        cap_cont =_('Continue &without control')
+        cap_stop =_('&Cancel playback [ESC]')
 
         for rp in range(times if times>0 else 0xffffffff):
             if _run():
                 break   #for rp
             if while_chngs:
                 new_body    = ed.get_text_all()
-                if pre_body == new_body:    
+                if pre_body == new_body:
                     pass;       LOG and log('break no change',)
                     break   #for rp
                 pre_body    = new_body
             if  (how_t=='wait'
             and (rp_ctrl-1) == rp % rp_ctrl
             and tm_wait < (datetime.datetime.now()-start_t).seconds):
-                cnts    = ([
-  dict(              tp='lb'    ,t=GAP          ,l=GAP  ,w=400   ,cap=_('Macro "{}" playback time is too long'.format(mcr['nm'])))
- ,dict(cid='wait'   ,tp='bt'    ,t=GAP*2+25*1   ,l=GAP  ,w=400   ,cap=_('Wait &another {} sec').format(tm_wait)  ,props='1'      )   # default
- ,dict(cid='cont'   ,tp='bt'    ,t=GAP*3+25*2   ,l=GAP  ,w=400   ,cap=_('Continue &without control')                             )
- ,dict(cid='stop'   ,tp='bt'    ,t=GAP*6+25*3   ,l=GAP  ,w=300   ,cap=_('&Cancel playback [ESC]')                                )
-                        ])
-                btn,vals,chds= dlg_wrapper(_('Playback macro'), GAP*2+400, GAP*7+4*25, cnts, {})
-                if btn is None or btn=='stop':
+                btn = app.msg_box_ex(
+                    _('Macro playback'),
+                    cap_text,
+                    [cap_wait, cap_cont, cap_stop],
+                    app.MB_ICONWARNING
+                    )
+                if btn is None or btn==2:
                     pass;       LOG and log('break by user',)
                     app.msg_status(_('Cancel playback macro: {}'.format(mcr['nm'])))
                     break   #for rp
-                if btn=='cont': #ans=='cont':
+                elif btn==1: #ans=='cont':
                     how_t   = 'work'
-                if btn=='wait': #ans=='wait':
+                elif btn==0: #ans=='wait':
                     start_t = datetime.datetime.now()
            #for rp
         self.last_mcr_id = mcr_id
        #def run
-       
+
     def _record_data_to_cmds(self, rec_data):
         ''' Coverting from record data to list of API command
             Param
@@ -706,15 +710,15 @@ class Command:
                 evls += ["app.app_proc(app.PROC_EXEC_PLUGIN, '{}')".format(rc[3:])]
                 continue #for rc
             pass;               LOG and log('unknown rec-item: {}',rc)
-        
+
 #       return evls
-        
+
         # Optimization
         # (1) ed.cmd(cmds.cCommand_TextInsert,'A')
         #     ed.cmd(cmds.cCommand_TextInsert,'B')
         # convert to
         #     ed.cmd(cmds.cCommand_TextInsert,'AB')
-        has_TI          = 1<len([evl for evl in evls 
+        has_TI          = 1<len([evl for evl in evls
                       if                        'cmds.cCommand_TextInsert,' in evl])
         if has_TI:
             reTI2       = re.compile(  r"ed.cmd\(cmds.cCommand_TextInsert,'(.+)'\)"
