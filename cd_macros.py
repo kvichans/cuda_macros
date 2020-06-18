@@ -1,8 +1,9 @@
 ''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
+    Alexey Torgashin (CudaText)
 Version:
-    '1.1.6 2017-06-21'
+    '1.1.7 2020-06-18'
 ToDo: (see end of file)
 '''
 
@@ -23,6 +24,10 @@ pass;                           LOG = (-2== 2)  # Do or dont logging.
 FROM_API_VERSION = '1.0.114'
 FROM_API_VERSION = '1.0.172' # menu_proc() <== PROC_MENU_*
 FROM_API_VERSION = '1.0.185' # menu_proc() with hotkey, tag
+
+VERSION     = re.split('Version:', __doc__)[1].split("'")[1]
+VERSION_V,  \
+VERSION_D   = VERSION.split(' ')
 
 JSON_FORMAT_VER = '20151204'
 MACROS_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'macros.json'
@@ -367,7 +372,7 @@ class Command:
                         ))
             btn,    \
             vals,   \
-            chds    = dlg_wrapper(_('Macros'), GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, cnts, vals, focus_cid='mrcs')
+            chds    = dlg_wrapper(f('{} ({})', _('Macros'), VERSION_V), GAP+WD_LST+GAP+WD_BTN+GAP+WD_ACTS+GAP,GAP+HT_LST+GAP, cnts, vals, focus_cid='mrcs')
             if btn is None or btn=='-': return
             mcr_ind = vals['mrcs']
             times   = vals['times']
@@ -606,25 +611,38 @@ class Command:
             self.adapt_menu()
        #def _do_acts
 
-    def run(self, mcr_id, times=1, waits=0, while_chngs=False, till_endln=False):
+#   def run(self, mcr_id,    times=1, waits=0, while_chngs=False, till_endln=False):
+    def run(self, info=None, times=1, waits=0, while_chngs=False, till_endln=False):
         ''' Main (and single) way to run any macro
         '''
+        mcr_id  = info                  # For call as "module=cuda_exttools;cmd=run;info=id"
         pass;                   LOG and log('mcr_id, times, waits, while_chngs, till_endln={}',(mcr_id, times, waits, while_chngs, till_endln))
         mcr     = self.mcr4id.get(str(mcr_id))
         if mcr is None:
             pass;               LOG and log('no id',)
             return app.msg_status(_('No macros: {}').format(mcr_id))
-        cmds4eval   = ';'.join(mcr['evl'])
+
+        _mcr = mcr['evl']
+
+        def _run_fast():
+            exec(';'.join(_mcr))
+
+        def _run_chk():
+            for s in _mcr:
+                exec(s)
+                if ed.get_carets()[0][1] >= ed.get_line_count()-1:
+                    return True
+
         pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         how_t       = 'wait'
         rp_ctrl     = self.tm_ctrl.get('rp_ctrl', 1000)                     # testing one of 1000 execution
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
         start_t     = datetime.datetime.now()
         pre_body    = '' if not while_chngs else ed.get_text_all()
+        _run = _run_chk if till_endln else _run_fast
+
         for rp in range(times if times>0 else 0xffffffff):
-            exec(cmds4eval)
-            if till_endln and ed.get_carets()[0][1] == ed.get_line_count()-1:
-                pass;           LOG and log('break endln',)
+            if _run():
                 break   #for rp
             if while_chngs:
                 new_body    = ed.get_text_all()

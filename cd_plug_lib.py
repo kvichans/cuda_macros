@@ -197,7 +197,7 @@ def get_translation(plug_file):
         2. These string are extracted from code to 
             lang/messages.pot
            with run
-            python.exe <pypython-root>\Tools\i18n\pygettext.py -p lang <plugin>.py
+            python.exe <python-root>\Tools\i18n\pygettext.py -p lang <plugin>.py
         3. Poedit (or same program) create 
             <module>\lang\ru_RU\LC_MESSAGES\<module>.po
            from (cmd "Update from POT") 
@@ -205,20 +205,30 @@ def get_translation(plug_file):
            It allows to translate all "strings"
            It creates (cmd "Save")
             <module>\lang\ru_RU\LC_MESSAGES\<module>.mo
-        4. get_translation uses the file to realize
+        4. <module>.mo can be placed also in dir 
+            CudaText\data\langpy\ru_RU\LC_MESSAGES\<module>.mo
+           The dir is used first.
+        5. get_translation uses the file to realize
             _('')
     '''
+    lng     = app.app_proc(app.PROC_GET_LANG, '')
     plug_dir= os.path.dirname(plug_file)
     plug_mod= os.path.basename(plug_dir)
-    lng     = app.app_proc(app.PROC_GET_LANG, '')
-    lng_mo  = plug_dir+'/lang/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
-    if os.path.isfile(lng_mo):
-        t   = gettext.translation(plug_mod, plug_dir+'/lang', languages=[lng])
-        _   = t.gettext
-        t.install()
-    else:
-        _   =  lambda x: x
+    lng_dirs= [ 
+                app.app_path(app.APP_DIR_DATA)  +os.sep+'langpy',
+                plug_dir                        +os.sep+'lang', 
+              ]
+    _       =  lambda x: x
+    pass;                      #return _
+    for lng_dir in lng_dirs:
+        lng_mo  = lng_dir+'/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
+        if os.path.isfile(lng_mo):
+            t   = gettext.translation(plug_mod, lng_dir, languages=[lng])
+            _   = t.gettext
+            t.install()
+            break
     return _
+   #def get_translation
 
 def get_desktop_environment():
     #From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
