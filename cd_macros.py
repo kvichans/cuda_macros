@@ -1,8 +1,9 @@
 ''' Plugin for CudaText editor
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
+    Alexey Torgashin (CudaText)
 Version:
-    '1.1.6 2017-06-21'
+    '1.1.7 2020-06-18'
 ToDo: (see end of file)
 '''
 
