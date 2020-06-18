@@ -1,4 +1,5 @@
-1.1.7 (2020-06-18)
+1.1.8 (2020-06-18)
+added: better message-box for "Macro playback is too long" warning
 added: better handle option "Until caret on last line", detect caret on last line even in the middle of macro chain
 
 1.1.6 (2017-06-21)
