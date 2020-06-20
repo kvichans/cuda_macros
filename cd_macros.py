@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.8 2020-06-18'
+    '1.1.9 2020-06-20'
 ToDo: (see end of file)
 '''
 
@@ -31,7 +31,7 @@ VERSION_D   = VERSION.split(' ')
 
 JSON_FORMAT_VER = '20151204'
 MACROS_JSON     = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'macros.json'
-RUNS_CHECK      = 300 # after each N macro executions, test time of macro exec
+RUNS_CHECK      = 300 # After each N macro executions, test time of macro exec
 
 C1      = chr(1)
 C2      = chr(2)
@@ -637,7 +637,7 @@ class Command:
 
         pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         how_t       = 'wait'
-        rp_ctrl     = self.tm_ctrl.get('rp_ctrl', RUNS_CHECK)
+        rp_ctrl     = self.tm_ctrl.get('rp_ctrl', RUNS_CHECK)                     # Testing one of RUNS_CHECK execution
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
         start_t     = datetime.datetime.now()
         pre_body    = '' if not while_chngs else ed.get_text_all()
