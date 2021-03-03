@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.9 2020-06-20'
+    '1.1.10 2021-03-03'
 ToDo: (see end of file)
 '''
 
@@ -56,7 +56,7 @@ class Command:
         cmd_nm2id       = {nm:eval('cmds.{}'.format(nm))    for nm in cmd_nms}
         self.CMD_ID2NM  = {str(cmd_id):nm                   for nm,cmd_id in cmd_nm2id.items()}
         if False and len(self.CMD_ID2NM) < len(cmd_nm2id):
-            app.msg_status('Repeated values in cudatext_cmd.py')
+            app.msg_status(_('Repeated values in cudatext_cmd.py'))
             ddnms   = [nm for nm,id in cmd_nm2id.items() if nm not in self.CMD_ID2NM.values()]
             pass;               log('CMD names with eq values {}',(ddnms))
         pass;                  #LOG and log('cmd_nm2id={}',cmd_nm2id)
@@ -130,7 +130,7 @@ class Command:
         '''
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         if 0==len(self.macros):                     return app.msg_status(_('No macros for export'))
-        exp_file= app.dlg_file(False, '', '', 'CudaText macros|*.cuda-macros')
+        exp_file= app.dlg_file(False, '', '', _('CudaText macros|*.cuda-macros'))
         exp_file= '' if exp_file is None else exp_file
         exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
         (WD_LST
@@ -143,8 +143,8 @@ class Command:
             pass;               LOG and log('sels={}',sels)
 
             cnts    = ([
-  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=70            ,cap=_('Export &to')                    )
- ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+70          ,r=GAP+WD_LST-35 ,en='0'                                 )
+  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=90            ,cap=_('Export &to')                    )
+ ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+90          ,r=GAP+WD_LST-35 ,en='0'                                 )
  ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                          )
  ,dict(cid='mcrs'   ,tp='ch-lbx',t=35   ,h=HT_LST   ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in self.macros])
  ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=100           ,cap=_('Check &all')                    )
@@ -163,7 +163,7 @@ class Command:
             pass;               LOG and log('sels={}',sels)
             if False:pass
             elif btn=='brow': #ans_s=='file':
-                new_exp_file= app.dlg_file(False, '', '', 'CudaText macros|*.cuda-macros')
+                new_exp_file= app.dlg_file(False, '', '', _('CudaText macros|*.cuda-macros'))
                 if new_exp_file is not None:
                     exp_file    = new_exp_file
                     exp_file    = exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
@@ -183,7 +183,7 @@ class Command:
     def dlg_import_choose_mcrs(self):
         l,lt    = '\n', '\n  '
         while True:
-            imp_file= app.dlg_file(True, '', '', 'CudaText macros|*.cuda-macros|All file|*.*')
+            imp_file= app.dlg_file(True, '', '', _('CudaText macros|*.cuda-macros|All file|*.*'))
             if imp_file is None:
                 return (None, None)
             vers_mcrs   = apx._json_loads(open(imp_file).read())
@@ -195,16 +195,16 @@ class Command:
             vers        = vers_mcrs.get('vers', {})
             if (app.app_api_version() < vers.get('ver-api', app.app_api_version())
             and app.ID_OK != app.msg_box(
-                        _('Macros from')
-                    +lt+imp_file
-                    +l+ _('are recorded in CudaText with version')
-                    +lt+    '"{}"'
-                    +l+ _('Your CudaText has older version')
-                    +lt+    '"{}"'
-                    +l+ ''
-                    +l+ _('No guarantee of correct working!')
-                    +l+ ''
-                    +l+ _('Continue import?').format(vers['ver-app'], app.app_exe_version())
+                        _('Macros from\n'
+                        + '  "{}"\n'
+                        + 'are recorded in CudaText with version\n'
+                        + '  "{}"\n'
+                        + 'Your CudaText has older version\n'
+                        + '  "{}"\n'
+                        + '\n'
+                        + 'No guarantee of correct working!\n'
+                        + '\n'
+                        + 'Continue import?').format(imp_file, vers['ver-app'], app.app_exe_version())
                     ,   app.MB_OKCANCEL)):
                 return (None, None)
             mcrs    = vers_mcrs.get('macros', [])
@@ -233,8 +233,8 @@ class Command:
         while True:
 
             cnts    = ([
-  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=85            ,cap=_('Import &from')              )
- ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+85          ,r=GAP+WD_LST-35 ,en='0'                             )
+  dict(              tp='lb'    ,tid='file'         ,l=GAP             ,w=90            ,cap=_('Import &from')              )
+ ,dict(cid='file'   ,tp='ed'    ,t=GAP              ,l=GAP+90          ,r=GAP+WD_LST-35 ,en='0'                             )
  ,dict(cid='brow'   ,tp='bt'    ,tid='file'         ,l=GAP+HT_LST-35   ,r=GAP+WD_LST    ,cap=_('&...')                      )
  ,dict(cid='mcrs'   ,tp='ch-lbx',t=35  ,h=HT_LST    ,l=GAP             ,w=    WD_LST    ,items=[mcr['nm'] for mcr in mcrs]  )
  ,dict(cid='ch-a'   ,tp='bt'    ,t=GAP+35+HT_LST    ,l=GAP*1           ,w=100           ,cap=_('Check &all')                )
