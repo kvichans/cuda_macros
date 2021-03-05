@@ -196,15 +196,15 @@ class Command:
             if (app.app_api_version() < vers.get('ver-api', app.app_api_version())
             and app.ID_OK != app.msg_box(
                         _('Macros from\n'
-                        + '  "{}"\n'
-                        + 'are recorded in CudaText with version\n'
-                        + '  "{}"\n'
-                        + 'Your CudaText has older version\n'
-                        + '  "{}"\n'
-                        + '\n'
-                        + 'No guarantee of correct working!\n'
-                        + '\n'
-                        + 'Continue import?').format(imp_file, vers['ver-app'], app.app_exe_version())
+                          '  "{}"\n'
+                          'are recorded in CudaText with version\n'
+                          '  "{}"\n'
+                          'Your CudaText has older version\n'
+                          '  "{}"\n'
+                          '\n'
+                          'No guarantee of correct working!\n'
+                          '\n'
+                          'Continue import?').format(imp_file, vers['ver-app'], app.app_exe_version())
                     ,   app.MB_OKCANCEL)):
                 return (None, None)
             mcrs    = vers_mcrs.get('macros', [])

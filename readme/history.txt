@@ -1,3 +1,6 @@
+1.1.10 (2021-03-03)
+fixed: i18n
+
 1.1.9 (2020-06-18)
 fixed: test timing each 300 execution (was 1000)
 
