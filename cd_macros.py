@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.10 2021-03-03'
+    '1.1.11 2021-08-22'
 ToDo: (see end of file)
 '''
 
@@ -643,6 +643,10 @@ class Command:
         pre_body    = '' if not while_chngs else ed.get_text_all()
         _run        = _run_chk if till_endln else _run_fast
 
+        force_eol   = till_endln and ed.get_text_line(ed.get_line_count()-1)
+        if force_eol:
+            ed.cmd(cmds.cCommand_ForceFinalEndOfLine)
+
         cap_text    = f(_('Macro "{}" playback time is too long'), mcr['nm'])
         cap_wait    = f(_('Wait &another {} sec'), tm_wait) # default
         cap_cont    = _('Continue &without control')
@@ -673,6 +677,7 @@ class Command:
                 elif btn==0:    #cap_wait
                     start_t = datetime.datetime.now()
            #for rp
+        
         self.last_mcr_id = mcr_id
        #def run
 
