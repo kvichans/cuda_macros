@@ -1,3 +1,6 @@
+1.1.11 (2021-08-22)
+added: if macro is run with "Until caret on last line", plugin runs app's command "force final end-of-line"
+
 1.1.10 (2021-03-03)
 fixed: i18n
 
