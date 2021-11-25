@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.11 2021-08-22'
+    '1.1.12 2021-11-25'
 ToDo: (see end of file)
 '''
 
@@ -105,12 +105,8 @@ class Command:
         app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_config,                     caption=_('&Macros...')
                      , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_config'))
         app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
-        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStart,                 caption=_('&Start record')
+        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStart,                 caption=_('&Start/stop recording')
                      , hotkey=get_hotkeys_desc(            cmds.cmd_MacroStart))
-        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStop,                  caption=_('St&op record')
-                     , hotkey=get_hotkeys_desc(            cmds.cmd_MacroStop))
-        app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroCancel,                caption=_('&Cancel record')
-                     , hotkey=get_hotkeys_desc(            cmds.cmd_MacroCancel))
         app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
         app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_export,                     caption=_('&Export...')
                      , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_export'))
@@ -677,7 +673,6 @@ class Command:
                 elif btn==0:    #cap_wait
                     start_t = datetime.datetime.now()
            #for rp
-        
         self.last_mcr_id = mcr_id
        #def run
 
