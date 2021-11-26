@@ -487,7 +487,7 @@ class Command:
             if def_nm not in nms:
                 break #for num
         while True:
-            mcr_nm      = app.dlg_input(_('Macro name. Tricks: "!NM" overwrite NM, "=NM" show NM in dialog'), def_nm)
+            mcr_nm      = app.dlg_input(_('Macro name.\nTricks: "!NM" overwrites NM, "=NM" shows NM in dialog.\n"Cancel" button still allows to run the "last recorded macro".'), def_nm)
             if mcr_nm is None:   return
             mcr_nm      = mcr_nm.strip()
             if ''==mcr_nm:  continue #while
