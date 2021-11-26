@@ -505,7 +505,7 @@ class Command:
         if use_old and mcr_nm in nms:
             mcr_ind     = nms.index(mcr_nm)
             self.macros[mcr_ind]['rec'] = mcr_record
-            self.macros[mcr_ind]['evl'] = self.macro_new
+            self.macros[mcr_ind]['evl'] = list(self.macro_new)
             id4mcr      = self.macros[mcr_ind]['id']
         else:
             while mcr_nm in nms:
@@ -519,7 +519,7 @@ class Command:
             self.macros += [{'id' :id4mcr       ##?? conflicts?
                             ,'nm' :mcr_nm
                             ,'rec':mcr_record
-                            ,'evl':self.macro_new
+                            ,'evl':list(self.macro_new)
                             }]
         self._do_acts()
 
