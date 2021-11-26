@@ -1,8 +1,11 @@
+1.1.13 (2021-11-26)
+added: command (Macros menu and Command Palette) "Playback last recorded macro" (patch by Alexey T.)
+
 1.1.12 (2021-11-25)
-changed: deleted 2 items in "Macros" menu: "Stop record", "Cancel record"; renamed "Start record" to "Start/stop recording"
+changed: deleted 2 items in "Macros" menu: "Stop record", "Cancel record"; renamed "Start record" to "Start/stop recording" (patch by Alexey T.)
 
 1.1.11 (2021-08-22)
-added: if macro is run with "Until caret on last line", plugin runs app's command "force final end-of-line"
+added: if macro is run with "Until caret on last line", plugin runs app's command "force final end-of-line" (patch by Alexey T.)
 
 1.1.10 (2021-03-03)
 fixed: i18n

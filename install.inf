@@ -26,3 +26,9 @@ section=commands
 caption=Macros: Import macros...
 method=dlg_import
 menu=0
+
+[item10]
+section=commands
+caption=Macros: Playback last recorded macro
+method=run_new
+menu=0

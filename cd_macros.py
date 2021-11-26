@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.12 2021-11-25'
+    '1.1.13 2021-11-26'
 ToDo: (see end of file)
 '''
 
@@ -47,6 +47,7 @@ class Command:
 
     macros      = []    # Main list [macro]
     mcr4id      = {}    # Derived dict {str_id:macro}
+    macro_new   = None  # Last recorded macro
 
 #   id_menu     = 0
 
@@ -107,6 +108,8 @@ class Command:
         app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
         app.menu_proc(      id_menu, app.MENU_ADD, command=cmds.cmd_MacroStart,                 caption=_('&Start/stop recording')
                      , hotkey=get_hotkeys_desc(            cmds.cmd_MacroStart))
+        app.menu_proc(      id_menu, app.MENU_ADD, command=self.run_new,                        caption=_('&Playback last recorded macro')
+                     , hotkey=get_hotkeys_desc(    'cuda_macros,run_new'))
         app.menu_proc(      id_menu, app.MENU_ADD,                                              caption='-')
         app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_export,                     caption=_('&Export...')
                      , hotkey=get_hotkeys_desc(    'cuda_macros,dlg_export'))
@@ -474,7 +477,9 @@ class Command:
                                 py:string_module,string_method,string_param
         '''
         pass;                   LOG and log('mcr_record={}',mcr_record)
-        if ''==mcr_record:   return app.msg_status(_('Empty record'))
+        if ''==mcr_record:
+            return app.msg_status(_('Last macro recording was empty'))
+        self.macro_new = self._record_data_to_cmds(mcr_record)
         def_nm      = ''
         nms     = [mcr['nm'] for mcr in self.macros]
         for num in range(1,1000):
@@ -500,7 +505,7 @@ class Command:
         if use_old and mcr_nm in nms:
             mcr_ind     = nms.index(mcr_nm)
             self.macros[mcr_ind]['rec'] = mcr_record
-            self.macros[mcr_ind]['evl'] = self._record_data_to_cmds(mcr_record)
+            self.macros[mcr_ind]['evl'] = self.macro_new
             id4mcr      = self.macros[mcr_ind]['id']
         else:
             while mcr_nm in nms:
@@ -514,7 +519,7 @@ class Command:
             self.macros += [{'id' :id4mcr       ##?? conflicts?
                             ,'nm' :mcr_nm
                             ,'rec':mcr_record
-                            ,'evl':self._record_data_to_cmds(mcr_record)
+                            ,'evl':self.macro_new
                             }]
         self._do_acts()
 
@@ -607,6 +612,11 @@ class Command:
         if '|menu|' in acts:
             self.adapt_menu()
        #def _do_acts
+
+    def run_new(self):
+        if not self.macro_new:
+            return app.msg_status(_('No macro was recorded yet'))
+        exec(';'.join(self.macro_new))
 
 #   def run(self, mcr_id,    times=1, waits=0, while_chngs=False, till_endln=False):
     def run(self, info=None, times=1, waits=0, while_chngs=False, till_endln=False):
