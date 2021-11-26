@@ -623,15 +623,17 @@ class Command:
         _mcr_s = ';'.join(_mcr)
 
         def _run_fast():
+            pass;               LOG and log('_mcr_s={}',_mcr_s)
             exec(_mcr_s)
 
         def _run_chk():
             for s in _mcr:
+                pass;           LOG and log('s={}',s)
                 exec(s)
                 if ed.get_carets()[0][1] >= ed.get_line_count()-1:
                     return True
 
-        pass;                   LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
+        pass;                  #LOG and log('nm, cmds4eval={}',(mcr['nm'], cmds4eval))
         how_t       = 'wait'
         rp_ctrl     = self.tm_ctrl.get('rp_ctrl', RUNS_CHECK)                     # Testing one of RUNS_CHECK execution
         tm_wait     = waits if waits>0 else self.tm_ctrl.get('tm_wait', 10) # sec
