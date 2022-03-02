@@ -121,7 +121,7 @@ class Command:
             return lambda:call(p)
         for mcr in self.macros:
             app.menu_proc(  id_menu,app.MENU_ADD, command=call_with(self.run,    mcr['id']),    caption=mcr['nm']
-                         , hotkey=get_hotkeys_desc(         'cuda_macros,run,{}',mcr['id']))
+                         , hotkey=get_hotkeys_desc(         'cuda_macros,run',mcr['id']))
        #def adapt_menu
 
     def dlg_export(self):
