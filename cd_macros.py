@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.15 2022-03-28'
+    '1.1.16 2022-06-01'
 ToDo: (see end of file)
 '''
 
@@ -353,7 +353,6 @@ class Command:
  +[dict(cid='chngs'  ,tp='ch'   ,t=GAP* 8+HT_BTN* 7     ,l=l_btn                ,w=WD_BTN   ,cap=_('While text c&hanges')                               )]
  +[dict(cid='endln'  ,tp='ch'   ,t=GAP* 9+HT_BTN* 8     ,l=l_btn                ,w=WD_BTN   ,cap=_('Until c&aret on last line')                         )]
  +[dict(cid='stst'   ,tp='bt'   ,t=GAP*11+HT_BTN*10     ,l=l_btn                ,w=WD_BTN   ,cap=stst_cap           ,props=def_stst                     )]
- +[dict(cid='canc'   ,tp='bt'   ,t=GAP*12+HT_BTN*11     ,l=l_btn                ,w=WD_BTN   ,cap=_('Canc&el record')                ,en=only_rec_on     )]
  +[dict(cid='view'   ,tp='ch'   ,t=GAP*14+HT_BTN*13     ,l=l_btn                ,w=WD_BTN   ,cap=_('Show actions')                                      )]
  +[dict(cid='adju'   ,tp='bt'   ,t=    HT_LST-HT_BTN*2  ,l=l_btn                ,w=WD_BTN   ,cap=_('Ad&just...')                    ,en=only_rec_off    )]
  +[dict(cid='-'      ,tp='bt'   ,t=GAP+HT_LST-HT_BTN*1  ,l=l_btn                ,w=WD_BTN   ,cap=_('Close')                                             )]
@@ -459,10 +458,7 @@ class Command:
             elif btn=='stst'     and     rec_on: #Stop record
 #           elif ans_s=='rec'    and     rec_on: #Stop record
                 self.need_dlg = True
-                return ed.cmd(cmds.cmd_MacroStop)       # Return for clear rec-mode in StatusBar, will recall from on_macro
-            elif btn=='canc'     and     rec_on: #Cancel record
-#           elif ans_s=='cancel' and     rec_on: #Cancel record
-                return ed.cmd(cmds.cmd_MacroCancel)     # Return for clear rec-mode in StatusBar
+                return ed.cmd(cmds.cmd_MacroStart)       # Return for clear rec-mode in StatusBar, will recall from on_macro
 
             if changed:
                 self._do_acts(what)
