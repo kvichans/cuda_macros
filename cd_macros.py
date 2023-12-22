@@ -100,7 +100,7 @@ class Command:
                 app.menu_proc(          id_menu, app.MENU_CLEAR)
             else:
                 # Create BEFORE Plugins
-                plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it['hint']][0]
+                plg_ind = [ind for ind,it in enumerate(top_its) if 'plugins' in it.get('hint', '')][0]
                 id_menu = app.menu_proc('top', app.MENU_ADD, tag=PLUG_AUTAG, index=plg_ind,     caption=_('&Macros'))
         # Fill
         app.menu_proc(      id_menu, app.MENU_ADD, command=self.dlg_config,                     caption=_('&Macros...')
