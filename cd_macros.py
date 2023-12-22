@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.16 2022-06-01'
+    '1.1.17 2023-12-22'
 ToDo: (see end of file)
 '''
 
@@ -94,9 +94,9 @@ class Command:
             app.menu_proc(              id_menu, app.MENU_CLEAR)
         else:
             top_its = app.menu_proc(    'top', app.MENU_ENUM)
-            if PLUG_AUTAG in [it['tag'] for it in top_its]:
+            if PLUG_AUTAG in [it.get('tag', '') for it in top_its]:
                 # Reuse id from 'top'
-                id_menu = [it['id'] for it in top_its if it['tag']==PLUG_AUTAG][0]
+                id_menu = [it['id'] for it in top_its if it.get('tag', '')==PLUG_AUTAG][0]
                 app.menu_proc(          id_menu, app.MENU_CLEAR)
             else:
                 # Create BEFORE Plugins
@@ -131,7 +131,7 @@ class Command:
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         if 0==len(self.macros):                     return app.msg_status(_('No macros for export'))
         exp_file= app.dlg_file(False, '', '', _('CudaText macros|*.cuda-macros'))
-        exp_file= '' if exp_file is None else exp_file
+        if exp_file is None: return
         exp_file= exp_file+('' if ''==exp_file or exp_file.endswith('.cuda-macros') else '.cuda-macros')
         (WD_LST
         ,HT_LST)= (500
