@@ -1,4 +1,4 @@
-1.1.17 (2023-12-22)
+1.1.18 (2023-12-22)
 fixed: adapt to new change in menu_proc API
 fixed: if Export dialog cancelled, don't do anything
 

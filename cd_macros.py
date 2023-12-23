@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.17 2023-12-22'
+    '1.1.18 2023-12-22'
 ToDo: (see end of file)
 '''
 
