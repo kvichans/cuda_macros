@@ -294,14 +294,12 @@ class Command:
         chngs   = '0'
         endln   = '0'
         while True:
-            WD_LST, \
-            HT_LST  = (self.dlg_prs.get('w_list', 300)
-                      ,self.dlg_prs.get('h_list', 500))
-            WD_ACTS,\
-            HT_ACTS = (self.dlg_prs.get('w_acts', 300)
-                      ,self.dlg_prs.get('h_acts', 500))
-            WD_BTN, \
-            HT_BTN  = (self.dlg_prs.get('w_btn', 150), 28)
+            WD_LST  = self.dlg_prs.get('w_list', 300)
+            HT_LST  = self.dlg_prs.get('h_list', 500)
+            WD_ACTS = self.dlg_prs.get('w_acts', 300)
+            HT_ACTS = self.dlg_prs.get('h_acts', 500)
+            WD_BTN  = self.dlg_prs.get('w_btn', 170)
+            HT_BTN  = 28
             WD_BTN_3= int(WD_BTN/3)
             l_btn   = GAP+WD_LST+GAP
             l_acts  = GAP+WD_LST+GAP+WD_BTN+GAP
