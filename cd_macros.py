@@ -301,7 +301,7 @@ class Command:
             HT_ACTS = (self.dlg_prs.get('w_acts', 300)
                       ,self.dlg_prs.get('h_acts', 500))
             WD_BTN, \
-            HT_BTN  = (self.dlg_prs.get('w_btn', 150), 24)
+            HT_BTN  = (self.dlg_prs.get('w_btn', 150), 28)
             WD_BTN_3= int(WD_BTN/3)
             l_btn   = GAP+WD_LST+GAP
             l_acts  = GAP+WD_LST+GAP+WD_BTN+GAP
