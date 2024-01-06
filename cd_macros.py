@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.18 2023-12-22'
+    '1.1.19 2024-01-06'
 ToDo: (see end of file)
 '''
 
@@ -351,7 +351,7 @@ class Command:
  +[dict(cid='chngs'  ,tp='ch'   ,t=GAP* 8+HT_BTN* 7     ,l=l_btn                ,w=WD_BTN   ,cap=_('While text c&hanges')                               )]
  +[dict(cid='endln'  ,tp='ch'   ,t=GAP* 9+HT_BTN* 8     ,l=l_btn                ,w=WD_BTN   ,cap=_('Until c&aret on last line')                         )]
  +[dict(cid='stst'   ,tp='bt'   ,t=GAP*11+HT_BTN*10     ,l=l_btn                ,w=WD_BTN   ,cap=stst_cap           ,props=def_stst                     )]
- +[dict(cid='view'   ,tp='ch'   ,t=GAP*14+HT_BTN*13     ,l=l_btn                ,w=WD_BTN   ,cap=_('Show actions')                                      )]
+ +[dict(cid='view'   ,tp='ch'   ,t=    HT_LST-HT_BTN*3  ,l=l_btn                ,w=WD_BTN   ,cap=_('Show actions')                                      )]
  +[dict(cid='adju'   ,tp='bt'   ,t=    HT_LST-HT_BTN*2  ,l=l_btn                ,w=WD_BTN   ,cap=_('Ad&just...')                    ,en=only_rec_off    )]
  +[dict(cid='-'      ,tp='bt'   ,t=GAP+HT_LST-HT_BTN*1  ,l=l_btn                ,w=WD_BTN   ,cap=_('Close')                                             )]
  +(
