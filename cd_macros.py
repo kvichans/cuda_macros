@@ -3,7 +3,7 @@ Authors:
     Andrey Kvichansky    (kvichans on github.com)
     Alexey Torgashin (CudaText)
 Version:
-    '1.1.19 2024-01-06'
+    '1.1.20 2024-01-12'
 ToDo: (see end of file)
 '''
 
@@ -63,7 +63,7 @@ class Command:
         pass;                  #LOG and log('cmd_nm2id={}',cmd_nm2id)
         pass;                  #LOG and log('CMD_ID2NM={}',self.CMD_ID2NM)
 
-        ver_macros      = apx._json_loads(open(MACROS_JSON).read()) if os.path.exists(MACROS_JSON) else {'ver':JSON_FORMAT_VER, 'list':[]}
+        ver_macros      = apx._json_loads(open(MACROS_JSON, encoding='utf8').read()) if os.path.exists(MACROS_JSON) else {'ver':JSON_FORMAT_VER, 'list':[]}
         if ver_macros['ver'] < JSON_FORMAT_VER:
             # Adapt to new format
             pass
@@ -186,7 +186,7 @@ class Command:
             imp_file= app.dlg_file(True, '', '', _('CudaText macros|*.cuda-macros|All file|*.*'))
             if imp_file is None:
                 return (None, None)
-            vers_mcrs   = apx._json_loads(open(imp_file).read())
+            vers_mcrs   = apx._json_loads(open(imp_file, encoding='utf8').read())
             if vers_mcrs is None:
                 if app.ID_OK != app.msg_box(_('No macros in file\n  {}\n\nChoose another file?').format(imp_file)
                     ,app.MB_OKCANCEL):
@@ -284,7 +284,7 @@ class Command:
         '''
         if app.app_api_version()<FROM_API_VERSION:  return app.msg_status(_('Need update CudaText'))
         keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
-        keys        = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+        keys        = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
 
         ids     = [mcr['id'] for mcr in self.macros]
         mcr_ind = ids.index(self.last_mcr_id) if self.last_mcr_id in ids else -1
@@ -437,7 +437,7 @@ class Command:
 
             elif btn=='keys': #ans_s=='hotkeys': #Hotkeys
                 app.dlg_hotkeys('cuda_macros,run,'+str(mcr['id']))
-                keys    = apx._json_loads(open(keys_json).read()) if os.path.exists(keys_json) else {}
+                keys    = apx._json_loads(open(keys_json, encoding='utf8').read()) if os.path.exists(keys_json) else {}
                 changed = True
 
             elif btn=='run': #ans_s=='run': #Run
@@ -597,7 +597,7 @@ class Command:
             mcr_key     = 'cuda_macros,run,{}'.format(mcr_id)
             keys_json   = app.app_path(app.APP_DIR_SETTINGS)+os.sep+'keys.json'
             if not os.path.exists(keys_json): return
-            keys        = apx._json_loads(open(keys_json).read())
+            keys        = apx._json_loads(open(keys_json, encoding='utf8').read())
             pass;              #LOG and log('??? key={}',mcr_key)
             if keys.pop(mcr_key, None) is not None:
                 pass;          #LOG and log('UPD keys.json deleted key={}',mcr_key)
