@@ -2,7 +2,7 @@
 Authors:
     Andrey Kvichansky    (kvichans on github.com)
 Version:
-    '1.0.4 2024-01-12'
+    '1.0.5 2024-01-13'
 Content
     log                 Logger with timing
     get_translation     i18n
@@ -10,7 +10,7 @@ Content
 ToDo: (see end of file)
 '''
 
-import  sys, os, gettext, logging, inspect, re, subprocess
+import  sys, os, gettext, logging, inspect
 from    time        import perf_counter
 import  cudatext        as app
 import  cudax_lib       as apx
@@ -275,6 +275,7 @@ def get_desktop_environment():
 def is_running(process):
     #From http://www.bloggerpolis.com/2011/05/how-to-check-if-a-process-is-running-using-python/
     # and http://richarddingwall.name/2009/06/18/windows-equivalents-of-ps-and-kill-commands/
+    import subprocess, re
     try: #Linux/Unix
         s = subprocess.Popen(["ps", "axw"],stdout=subprocess.PIPE)
     except: #Windows
