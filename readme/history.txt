@@ -1,3 +1,6 @@
+1.1.20 (2024-01-12)
+fixed: crash on system with CJK default locale
+
 1.1.18 (2023-12-22)
 fixed: adapt to new change in menu_proc API
 fixed: if Export dialog cancelled, don't do anything
