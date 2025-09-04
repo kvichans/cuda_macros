@@ -761,7 +761,7 @@ def _testing():
 '''
 ToDo
 [+][kv-kv][04dec15] Set stable part for run, use free part for name
-[ ][at-kv][04dec15] Store in folder settings\macros for easy copy
+[ ][at-kv][04dec15] Store in folder settings/macros for easy copy
 [+][at-kv][04dec15] Run multuple times
 [ ][kv-kv][04dec15] Optimize: replace ed.cmd() to direct API-function
 [ ][kv-kv][08dec15] Skip commands in rec: start_rec, ??
